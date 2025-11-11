@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Commander</title>
+    <link rel="stylesheet" href="static/css/style.css">
+</head>
+<body class="main_bg">
+<div class="container">
+    <div class="terminal">
+        <header class="title-bar">Image Commander: uploading shell</header>
+        <main>
+            <div class="terminal-content" style="display: none">
+                <pre id="terminal-text"></pre>
+            </div>
+            <div class="shell">
+                <div class="shell-panel" id="upload-panel">
+                    <div class="panel-path">/local/upload/</div>
+                    <ul class="file-list">
+                        <li>1.jpg (50 Mb)</li>
+                        <li>2.jpg (12 Mb)</li>
+                    </ul>
+                </div>
+                <div class="shell-panel" id="storage-panel">
+                    <div class="panel-path">/host/usr/images/</div>
+                        <ul class="file-list">
+                        <li>3.jpg (50 Mb)</li>
+                        <li>4.jpg (12 Mb)</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="menu">
+                <ul>
+                    <li>Help</li>
+                    <li>Select</li>
+                    <li>View</li>
+                    <li>Upload</li>
+                    <li>Delete</li>
+                    <li>Exit</li>
+                </ul>
+            </div>
+
+            <div class="command-line">
+                <label for="cl-input" id="cl-label"></label>
+                <input type="text" id="cl-input">
+            </div>
+
+        </main>
+        <footer>© iZelikov</footer>
+    </div>
+</div>
+<script src="static/js/terminal.js"></script>
+<script src="static/js/shell.js"></script>
+</body>
+</html>

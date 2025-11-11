@@ -1,0 +1,4 @@
+ic command list:
+  --help    - help
+  --upload  - start uploading shell
+  rm -rf /  - delete all files
