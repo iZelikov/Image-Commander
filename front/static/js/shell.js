@@ -19,6 +19,7 @@ function setUploadDropArea(dropArea) {
     dropArea.addEventListener('drop', (e) => {
         e.preventDefault()
         dropArea.classList.remove('dragover')
+        handleDrop(e)
     });
 }
 

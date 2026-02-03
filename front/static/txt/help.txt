@@ -1,4 +1,9 @@
-ic command list:
-  --help    - help
-  --upload  - start uploading shell
+Image Commander commands list:
+  help      - show this tips
+  shell     - start uploading shell
+  exit      - exit uploading shell
+  select    - select files to upload
+  upload    - upload selected files
+  list      - list uploaded files
+  clear     - clear terminal output
   rm -rf /  - delete all files

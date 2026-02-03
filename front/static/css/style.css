@@ -1,6 +1,7 @@
 :root {
     --main_bg: #000F0C;
     --terminal_color: #008800;
+    --terminal_color_dark: #004400;
     --terminal_bg: #000000;
     --terminal_font: courier, monospace;
     --terminal_font_size: 20px;
@@ -82,13 +83,18 @@ ul {
     margin: 0;
 }
 
+.shell-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
 .shell {
     box-sizing: border-box;
     display: flex;
     justify-content: space-between;
     gap: var(--padding_small);
     height: 100%;
-
 }
 
 .shell-panel {
@@ -136,7 +142,14 @@ ul.file-list {
 
 .menu li:hover, .menu li:active {
     background-color: var(--terminal_bg);
-    color: var(--terminal_color);}
+    color: var(--terminal_color);
+    outline-color: var(--terminal_color);
+    outline-style: solid;
+    }
+
+.menu li:active {
+    background-color: var(--terminal_color_dark);
+}
 
 .command-line {
     display: flex;

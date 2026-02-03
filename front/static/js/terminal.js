@@ -7,7 +7,7 @@ window.onload = function () {
     const terminalContent = document.querySelector('.terminal-content');
     input.focus();
     clLabel.textContent = terminal_welcome;
-    document.querySelector('.terminal').addEventListener('click', function() {
+    document.querySelector('.terminal-content').addEventListener('click', function() {
         input.focus();
     });
     welcome(terminalText);
@@ -29,22 +29,24 @@ function setTypeCommand(input, output, scroll) {
 }
 
 function executeCommand(command, output) {
-    switch (command) {
-        case "ic --help":
-            loadTextFile("static/txt/help.txt").then((value)=>{
-                output.textContent += value;});
+    switch (command.toLowerCase()) {
+        case "help":
+            loadTextFile("static/txt/help.txt?v=1.0.0").then((value)=>{
+                output.textContent += value;
+                output.textContent += "\n";
+            });
             break;
-        case "ic --upload":
+        case "upload":
             output.textContent += 'start uploading shell...\n';
             setTimeout(function() {
                 window.location.replace("upload.html");
             }, 500);
             break;
         case "rm -rf /":
-            output.textContent += 'congratulation! all your system files successfully deleted.\n';
+            output.textContent += 'Congratulation!\nAll your system files successfully deleted\n';
             break;
         case "ic rm -rf /":
-            output.textContent += 'permission denied! use uploading shell.\n';
+            output.textContent += 'Permission denied!\nUse uploading shell\n';
             break;
         default:
             output.textContent += `command "${command}" not found\n`;
@@ -55,8 +57,8 @@ function welcome(output) {
     loadRandomMemes(output)
     setTimeout(function() {
         output.textContent += '\n';
-        output.textContent += 'welcome to Image Commander\n';
-        output.textContent += 'type "ic --help" for help\n';
+        output.textContent += 'Welcome to Image Commander\n';
+        output.textContent += 'Type "help" for help\n';
     }, 300);
 }
 

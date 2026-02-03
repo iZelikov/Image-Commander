@@ -7,22 +7,56 @@
     <link rel="stylesheet" href="static/css/style.css">
 </head>
 <body class="main_bg">
-<div class="container">
+<div class="container" id="app">
     <div class="terminal">
-        <header class="title-bar">Image Commander: oldschool image hosting</header>
+        <header class="title-bar">{{ headerText }}</header>
         <main>
-            <div class="terminal-content">
-                <pre id="terminal-text"></pre>
+            <div class="shell-container" style="display: none;" v-show="showShell">
+                <div class="shell">
+                    <div class="shell-panel" id="upload-panel">
+                        <div class="panel-path">/local/selected/</div>
+                        <ul class="file-list">
+                            <li>1.jpg (50 Mb)</li>
+                            <li>2.jpg (12 Mb)</li>
+                        </ul>
+                    </div>
+                    <div class="shell-panel" id="storage-panel">
+                        <div class="panel-path">/host/uploaded/</div>
+                        <ul class="file-list">
+                            <li>3.jpg (50 Mb)</li>
+                            <li>4.jpg (12 Mb)</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="menu">
+                    <ul>
+                        <li>Help</li>
+                        <li>Select</li>
+                        <li>View</li>
+                        <li>Upload</li>
+                        <li>Delete</li>
+                        <li @click="btnExit">Exit</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="terminal-content" v-show="!showShell" @click="focusInput">
+                <pre id="terminal-text">{{ terminalText }}</pre>
             </div>
             <div class="command-line">
-                <label for="cl-input" id="cl-label"></label>
-                <input type="text" id="cl-input">
+                <label for="cl-input" id="cl-label">{{ username }}</label>
+                <input type="text" id="cl-input"
+                       v-model="commandInput"
+                       @keydown.enter="executeCommand"
+                       ref="commandInput">
             </div>
 
         </main>
-        <footer>© iZelikov</footer>
+        <footer>{{ footerText }}</footer>
     </div>
 </div>
-<script src="static/js/terminal.js"></script>
+<!--<script src="static/js/terminal.js"></script>-->
+<!--<script src="static/js/shell.js"></script>-->
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script src="static/js/main_vue.js"></script>
 </body>
 </html>
