@@ -8,33 +8,95 @@
 </head>
 <body class="main_bg">
 <div class="container" id="app">
+    <input type="file"
+           id="fileInput"
+           accept="image/*"
+           multiple
+           style="display: none;"
+           @change="handleFiles">
     <div class="terminal">
         <header class="title-bar">{{ headerText }}</header>
         <main>
             <div class="shell-container" style="display: none;" v-show="showShell">
                 <div class="shell">
-                    <div class="shell-panel" id="upload-panel">
+                    <div class="shell-panel"
+                         id="upload-panel"
+                         @click="activePanel='left'"
+                         :class="{active_panel: activePanel === `left`}"
+                         @keydown.enter="alert('left up')"
+                    >
+                        <div class="viewer" v-show="viewMode">
+                            <img src="static/img/banner.png">
+                        </div>
                         <div class="panel-path">/local/selected/</div>
-                        <ul class="file-list">
-                            <li>1.jpg (50 Mb)</li>
-                            <li>2.jpg (12 Mb)</li>
-                        </ul>
+                        <table v-if="selectedFilesInfo.length > 0">
+                            <thead>
+                            <tr>
+                                <td>Filename</td>
+                                <td>Ext</td>
+                                <td>Size&nbsp;MB</td>
+                                <td>OK</td>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr v-for="(file, index) in selectedFilesInfo"
+                                :key="index"
+                                :class="{
+                                    invalid: !file.validation.ok,
+                                    selected: index === selectedFileIndex
+                                }"
+                                :data-selected="index === selectedFileIndex && activePanel === 'left'"
+                                @click="selectFile(index, 'left')">
+                                <td>{{ file.shortName }}</td>
+                                <td>{{ file.ext }}</td>
+                                <td style="text-align: right">{{ file.sizeMB }}</td>
+                                <td style="text-align: center">{{ file.validation.ok ? '✓' : ''}}</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                        <p class="file-list" v-else>drop your files here...<br> or click "Select" button</p>
                     </div>
-                    <div class="shell-panel" id="storage-panel">
+                    <div class="shell-panel"
+                         id="storage-panel"
+                         @click="activePanel='right'"
+                         :class="{active_panel: activePanel === `right`}"
+                    >
                         <div class="panel-path">/host/uploaded/</div>
-                        <ul class="file-list">
-                            <li>3.jpg (50 Mb)</li>
-                            <li>4.jpg (12 Mb)</li>
-                        </ul>
+                        <table v-if="uploadedImages.length > 0">
+                            <thead>
+                            <tr>
+                                <td>Filename</td>
+                                <td>Ext</td>
+                                <td>Size&nbsp;MB</td>
+                                <td>Link</td>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr v-for="(file, index) in uploadedImages"
+                                :key="index"
+                                :class="{
+                                    selected: index === uploadedFileIndex
+                                }"
+                                :data-selected="index === uploadedFileIndex && activePanel === 'right'"
+                                @click="selectFile(index, 'right')"
+                            >
+                                <td>{{ file.shortName }}</td>
+                                <td>{{ file.ext }}</td>
+                                <td style="text-align: right">{{ file.sizeMB }}</td>
+                                <td style="text-align: center"><a target="_blank" href="#">[🡇]</a></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                        <p class="file-list" v-else>No files yet...</p>
                     </div>
                 </div>
                 <div class="menu">
                     <ul>
                         <li>Help</li>
-                        <li>Select</li>
-                        <li>View</li>
-                        <li>Upload</li>
-                        <li>Delete</li>
+                        <li @click="btnSelect">Select</li>
+                        <li @click="viewMode=!viewMode">View</li>
+                        <li @click="btnUpload">Upload</li>
+                        <li @click="deleteSelectedFile">Delete</li>
                         <li @click="btnExit">Exit</li>
                     </ul>
                 </div>
@@ -47,6 +109,9 @@
                 <input type="text" id="cl-input"
                        v-model="commandInput"
                        @keydown.enter="executeCommand"
+                       @keydown.up="getHistory(-1)"
+                       @keydown.down="getHistory(1)"
+                       @focusin="activePanel=null"
                        ref="commandInput">
             </div>
 
@@ -54,8 +119,7 @@
         <footer>{{ footerText }}</footer>
     </div>
 </div>
-<!--<script src="static/js/terminal.js"></script>-->
-<!--<script src="static/js/shell.js"></script>-->
+
 <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 <script src="static/js/main_vue.js"></script>
 </body>

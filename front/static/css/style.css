@@ -12,6 +12,7 @@
     --mobile_width: 480px;
     --padding_main: 1em;
     --padding_small: 0.5em;
+    --padding_xs: 0.25em;
 }
 
 body {
@@ -48,7 +49,7 @@ ul {
     box-sizing: border-box;
     height: 100%;
     background-color: var(--terminal_bg);
-    font-family: var(--terminal_font);
+    font-family: var(--terminal_font), monospace;
     font-weight: var(--terminal_font_weight);
     font-size: var(--terminal_font_size);
     color: var(--terminal_color);
@@ -60,12 +61,13 @@ ul {
     padding: 0 var(--padding_main);
 }
 
-.terminal main{
+.terminal main {
     display: flex;
     flex-direction: column;
-    flex-grow: 1;
-    padding: var(--padding_main);
-    overflow: hidden;
+    gap: var(--padding_xs);
+    flex: 1;
+    min-height: 0;
+    padding: var(--padding_small);
 }
 
 .terminal footer {
@@ -73,7 +75,7 @@ ul {
 }
 
 .terminal-content {
-    flex-grow: 1;
+    flex: 1;
     overflow-y: auto;
     scrollbar-width: none;
     -ms-overflow-style: none;
@@ -86,42 +88,128 @@ ul {
 .shell-container {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    flex: 1;
+    min-height: 0;
 }
 
 .shell {
-    box-sizing: border-box;
     display: flex;
-    justify-content: space-between;
+    flex: 1;
+    min-height: 0;
     gap: var(--padding_small);
-    height: 100%;
 }
 
 .shell-panel {
-    flex-grow: 1;
-    border: 3px double var(--terminal_color);
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    border: 3px double var(--terminal_color_dark);
+    overflow: scroll;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    border-collapse: collapse;
+}
+
+.panel-path {
+    flex-shrink: 0;
+    text-align: center;
+    padding: var(--padding_xs) var(--padding_main);;
+    border-bottom: 1px solid var(--terminal_color);
+}
+
+.shell-panel table {
+    min-height: 0;
+    width: 100%;
+}
+
+.shell-panel table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.shell-panel .viewer img {
+    width:100%;
+}
+
+
+.shell-panel table thead {
+    /*position: sticky;*/
+    /*top: 0;*/
+    background-color: var(--terminal_bg);
+    border-bottom: 2px solid var(--terminal_color);
+}
+
+.shell-panel table td {
+    padding: var(--padding_xs) var(--padding_main);
+}
+
+.invalid {
+    color: var(--terminal_color_dark);
+}
+
+.selected {
+    background-color: var(--terminal_color);
+    color: var(--terminal_bg);
+}
+
+.shell-panel table .selected a {
+    color : var(--terminal_bg);
+}
+
+.shell-panel table tbody tr:hover, .shell-panel table tbody tr:active {
+    color: var(--terminal_bg);
+    background-color: var(--terminal_color_dark);
+}
+
+.shell-panel table a {
+    color: var(--terminal_color);
+    text-decoration-line:none;
+}
+
+.shell-panel table a:hover {
+    color: var(--terminal_bg);
+    text-decoration-line:underline;
+}
+
+
+
+.active_panel {
+    border-color: var(--terminal_color);
+}
+
+.shell-panel table tbody tr.invalid:hover {
+    background-color: var(--terminal_color_dark);
+}
+
+.file-list {
+    margin: 0;
+    padding: var(--padding_main);
+}
+
+.file-list li:hover, .file-list li:active {
+    color: var(--terminal_bg);
+    background-color: var(--terminal_color);
+}
+
+.shell-panel > p.file-list {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    margin: 0;
+    padding: var(--padding_main);
+    min-height: 100px;
 }
 
 .dragover {
     border: 3px dotted var(--terminal_color);
 }
 
-
-.panel-path {
-    text-align: center;
-    border-bottom: 1px solid var(--terminal_color);
-}
-
-ul.file-list {
-    padding: var(--padding_main);
-}
-
-.file-list li {
-}
-
-.file-list li:hover, .file-list li:active {
-    color: var(--terminal_bg);
-    background-color: var(--terminal_color);
+.menu {
+    flex-shrink: 0;
+    margin-top: var(--padding_small);
 }
 
 .menu ul {
@@ -138,21 +226,23 @@ ul.file-list {
     color: var(--terminal_bg);
     text-align: center;
     padding: 0 var(--padding_small);
+    cursor: pointer;
 }
 
 .menu li:hover, .menu li:active {
     background-color: var(--terminal_bg);
     color: var(--terminal_color);
-    outline-color: var(--terminal_color);
-    outline-style: solid;
-    }
+    outline: 2px solid var(--terminal_color);
+}
 
 .menu li:active {
     background-color: var(--terminal_color_dark);
 }
 
 .command-line {
+    flex-shrink: 0;
     display: flex;
+    align-items: center;
 }
 
 #cl-input {
