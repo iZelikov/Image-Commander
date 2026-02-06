@@ -4,7 +4,7 @@ services:
     env_file: .env
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./logs/postgresql:/var/log/postgresql  # Разделяем логи
+      - ./logs/postgresql:/var/log/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER"]
       interval: 5s
@@ -26,7 +26,7 @@ services:
         condition: service_healthy
     volumes:
       - ./back:/app
-      - ./logs/app:/logs  # Логи приложения
+      - ./logs/app:/logs
       - ./images:/images
     restart: unless-stopped
     networks:
@@ -38,7 +38,7 @@ services:
       context: ./nginx
       dockerfile: Dockerfile
     ports:
-      - "88:80"
+      - "80:80"
     volumes:
       - ./front:/usr/share/nginx/html:ro
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
@@ -46,27 +46,24 @@ services:
       - ./logs/nginx:/var/log/nginx
     depends_on:
       - app
-      - adminer  # Добавляем зависимость
+      - adminer
     networks:
       - frontend
-      - backend  # Добавляем сеть для доступа к adminer
+      - backend
     restart: unless-stopped
 
   adminer:
     image: adminer:latest
-    # Убираем проброс порта наружу, доступ только через nginx
-    # ports:
-    #   - "13654:8080"
     environment:
       ADMINER_DEFAULT_SERVER: postgres
       ADMINER_DEFAULT_USERNAME: ${POSTGRES_USER}
       ADMINER_DEFAULT_PASSWORD: ${POSTGRES_PASSWORD}
       ADMINER_DEFAULT_DATABASE: ${POSTGRES_DB}
-      ADMINER_PLUGINS: tables-filter tinymce  # Опциональные плагины
+      ADMINER_PLUGINS: tables-filter tinymce
     depends_on:
       - postgres
     networks:
-      - backend  # Только внутренняя сеть
+      - backend
     restart: unless-stopped
 
 volumes:

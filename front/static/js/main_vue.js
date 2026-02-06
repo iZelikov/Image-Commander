@@ -430,6 +430,10 @@ async function loadUploadedImages(app) {
 
         const data = await response.json();
 
+        if (app.uploadedFileIndex >= data.length) {
+            app.uploadedFileIndex = data.length === 0 ? -1 : data.length - 1;
+        }
+
         if (Array.isArray(data)) {
             app.uploadedImages = data;
         } else {

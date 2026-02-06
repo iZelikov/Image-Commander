@@ -68,7 +68,6 @@ class ImageRequestHandler(http.server.BaseHTTPRequestHandler):
             self.wfile.write(json.dumps({'error': 'Not found'}).encode())
 
     def do_POST(self):
-        """Обработка POST запросов для загрузки файлов"""
         parsed_path = urllib.parse.urlparse(self.path)
         path = parsed_path.path
 
