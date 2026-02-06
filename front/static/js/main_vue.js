@@ -122,6 +122,15 @@ createApp({
                     this.selectedFileIndex = this.selectedFiles.length - 1;
                 }
             }
+            if (this.activePanel === 'right') {
+                const index = this.uploadedFileIndex;
+                const filename_to_delete = this.uploadedImages[index]['filename'];
+                fetch(
+                    API_LINKS.delete + filename_to_delete,
+                    {method: 'DELETE'}).then(
+                    () => loadUploadedImages(this).then(
+                        () => console.log(filename_to_delete + ' was removed.')));
+            }
         },
         changeFile(shift) {
             switch (this.activePanel) {
@@ -264,7 +273,7 @@ createApp({
             this.focusInput();
         });
         loadUploadedImages(this).then(() => {
-            console.log("Metadata Loaded")
+            console.log("Image list loaded")
         });
         document.addEventListener('keydown', this.handleKeyDown.bind(this));
     }
@@ -312,8 +321,8 @@ function processCommand(command, app) {
             break;
         case 'ls':
             app.toTerminal('Uploaded images:')
-            app.uploadedFilesInfo.forEach(file=> {
-                app.toTerminal(intend+file.original_name);
+            app.uploadedFilesInfo.forEach(file => {
+                app.toTerminal(intend + file.original_name);
             })
             break;
         case 'rm -rf /':
@@ -361,16 +370,6 @@ function validateFile(file) {
 
 
 function uploadFiles(app) {
-    // // заглушка
-    // app.selectedFilesInfo.forEach(file => {
-    //     if (file.validation.ok) {
-    //         app.uploadedImages.push(file);
-    //     }
-    // })
-    // app.selectedFiles = [];
-    // return;
-    // заглушка
-
 
     if (app.selectedFilesInfo.length === 0) {
         app.toTerminal('No files to upload. Use "select" command first.');
@@ -380,12 +379,20 @@ function uploadFiles(app) {
     app.toTerminal('Starting upload...');
 
     const formData = new FormData();
-
+    let flag = false;
     app.selectedFilesInfo.forEach((file, index) => {
         if (file.validation.ok) {
             formData.append('file' + index, file.fileObject);
+            flag = true;
         }
     });
+
+    if (!flag) {
+        app.toTerminal('No files uploaded');
+        app.selectedFiles = [];
+        return;
+    }
+
 
     fetch(API_LINKS.upload, {
         method: 'POST',
@@ -400,6 +407,9 @@ function uploadFiles(app) {
         .then(data => {
             app.toTerminal('Upload successful!');
             app.selectedFiles = [];
+            loadUploadedImages(app).then(() => {
+                console.log("Image list Updated")
+            });
         })
         .catch(error => {
             app.toTerminal(`Upload error: ${error.message}`);

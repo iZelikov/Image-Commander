@@ -1,24 +1,31 @@
-import http.server
 import logging
+import socketserver
 
-from config import HOST, PORT
-from http_handler import RequestHandler
+from config import IMAGE_DIR, HOST, PORT, DEBUG, BACKUP_DIR
+from http_handler import ImageRequestHandler
 from db import init_tables
 
+logger = logging.getLogger(__name__)
 
 def run_server():
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
     init_tables()
 
-    httpd = http.server.HTTPServer((HOST, PORT), RequestHandler)
-    logging.info(f'Starting httpd server on {HOST}:{PORT}...\n')
+    IMAGE_DIR.mkdir(parents=True, exist_ok=True)
+    BACKUP_DIR.mkdir(parents=True, exist_ok=True)
+
+    handler = ImageRequestHandler
+    httpd = socketserver.TCPServer((HOST, PORT), handler)
+
+    logger.info(f"Server running on {HOST}:{PORT}")
+    logger.info(f"Image directory: {IMAGE_DIR}")
+    logger.info(f"Debug mode: {DEBUG}")
+
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
-        pass
-    httpd.server_close()
-    logging.info('Stopping httpd server.\n')
+        logger.info("\nServer stopped")
+        httpd.server_close()
 
 
 if __name__ == "__main__":
