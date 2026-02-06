@@ -1,4 +1,10 @@
 const version = '0.0.1';
+const API_LINKS = {
+    "get": "/api/get_images/",
+    "upload": "/api/upload/",
+    "delete": "/api/delete/",
+    "images_path": "/images/"
+}
 const headerStrings = [
     'Image Commander: oldschool hosting',
     'Image Commander: uploading shell'];
@@ -16,13 +22,16 @@ createApp({
             uploadedImages: [],
             showShell: false,
             viewMode: false,
+            showModal: false,
             terminalText: '',
             commandInput: '',
+            modalContent: {"title": "title", "text": "text"},
             commandHistory: [],
             historyIndex: -1,
             activePanel: null,
             selectedFileIndex: -1,
             uploadedFileIndex: -1,
+            isLoadingImages: false,
         }
     },
     methods: {
@@ -42,8 +51,15 @@ createApp({
                 this.historyIndex = i;
             }
         },
+        btnHelp() {
+            this.modalContent = getHelpContent();
+            this.showModal = !this.showModal;
+        },
         btnSelect() {
             document.getElementById('fileInput').click();
+        },
+        btnView() {
+            this.viewMode = !this.viewMode;
         },
         btnUpload() {
             uploadFiles(this);
@@ -135,20 +151,55 @@ createApp({
         },
         handleKeyDown(e) {
             if (this.activePanel) {
-                e.preventDefault();
                 switch (e.key) {
                     case 'ArrowUp':
+                        e.preventDefault();
                         this.changeFile(-1);
                         break;
                     case 'ArrowDown':
+                        e.preventDefault();
                         this.changeFile(+1);
                         break;
                     case 'Tab':
+                        e.preventDefault();
                         const tabs = {"left": "right", "right": "left"}
                         this.activePanel = tabs[this.activePanel];
                         break;
                     case 'Delete':
+                        e.preventDefault();
                         this.deleteSelectedFile();
+                        break;
+                    case 'F8':
+                        e.preventDefault();
+                        this.deleteSelectedFile();
+                        break;
+                }
+            }
+            if (this.showShell) {
+                switch (e.key) {
+                    case 'F1':
+                        e.preventDefault();
+                        this.btnHelp();
+                        break;
+                    case 'F2':
+                        e.preventDefault();
+                        this.btnSelect();
+                        break;
+                    case 'F3':
+                        e.preventDefault();
+                        this.btnView();
+                        break;
+                    case 'F4':
+                        this.btnUpload();
+                        break;
+                    case 'F10':
+                        e.preventDefault();
+                        this.btnExit();
+                        break;
+                    case 'Escape':
+                        this.activePanel = null;
+                        this.selectedFileIndex = -1;
+                        this.uploadedFileIndex = -1;
                         break;
                 }
             }
@@ -176,6 +227,34 @@ createApp({
                 }
             })
         },
+        uploadedFilesInfo() {
+            if (!Array.isArray(this.uploadedImages)) {
+                return [];
+            }
+            return this.uploadedImages.map(file => {
+                const MAX_NAME_LENGTH = 12;
+                const splitName = file.original_filename.split('.');
+                const extension = splitName.pop().toLowerCase();
+                const name = splitName.join('');
+                const shortName = name.length > MAX_NAME_LENGTH ? `${name.slice(0, MAX_NAME_LENGTH - 2)}~1` : name;
+                const link = API_LINKS.images_path + file.filename;
+                return {
+                    name: name,
+                    shortName: shortName,
+                    fullName: file.filename,
+                    original_name: file.original_filename,
+                    ext: extension,
+                    link: link,
+                    sizeMB: (file.size / (1024 * 1024)).toFixed(3),
+
+                }
+            })
+        },
+        viewLink() {
+            if (this.uploadedFileIndex >= 0) {
+                return this.uploadedFilesInfo[this.uploadedFileIndex].link;
+            } else return '#';
+        },
     },
     mounted() {
         loadRandomMemes().then((memeText) => {
@@ -183,6 +262,9 @@ createApp({
         }).then(() => {
             this.toTerminal(welcomeText)
             this.focusInput();
+        });
+        loadUploadedImages(this).then(() => {
+            console.log("Metadata Loaded")
         });
         document.addEventListener('keydown', this.handleKeyDown.bind(this));
     }
@@ -229,7 +311,10 @@ function processCommand(command, app) {
             uploadFiles(app);
             break;
         case 'ls':
-            app.toTerminal(`Uploaded images:\n${intend}` + app.uploadedImages.join(`\n${intend}`));
+            app.toTerminal('Uploaded images:')
+            app.uploadedFilesInfo.forEach(file=> {
+                app.toTerminal(intend+file.original_name);
+            })
             break;
         case 'rm -rf /':
             app.toTerminal(`Congratulations!\nYou have successfully deleted the entire system.`);
@@ -276,13 +361,14 @@ function validateFile(file) {
 
 
 function uploadFiles(app) {
-    // заглушка
-    app.selectedFilesInfo.forEach(file => {
-        if (file.validation.ok) {
-            app.uploadedImages.push(file);
-        }
-    })
-    app.selectedFiles = [];
+    // // заглушка
+    // app.selectedFilesInfo.forEach(file => {
+    //     if (file.validation.ok) {
+    //         app.uploadedImages.push(file);
+    //     }
+    // })
+    // app.selectedFiles = [];
+    // return;
     // заглушка
 
 
@@ -295,11 +381,13 @@ function uploadFiles(app) {
 
     const formData = new FormData();
 
-    app.selectedFiles.forEach((file, index) => {
-        formData.append('file' + index, file);
+    app.selectedFilesInfo.forEach((file, index) => {
+        if (file.validation.ok) {
+            formData.append('file' + index, file.fileObject);
+        }
     });
 
-    fetch('/api/upload/', {
+    fetch(API_LINKS.upload, {
         method: 'POST',
         body: formData
     })
@@ -316,4 +404,50 @@ function uploadFiles(app) {
         .catch(error => {
             app.toTerminal(`Upload error: ${error.message}`);
         });
+}
+
+async function loadUploadedImages(app) {
+    app.isLoadingImages = true;
+
+    try {
+        console.log('Loading images list from server...');
+
+        const response = await fetch(API_LINKS.get);
+
+        if (!response.ok) {
+            console.error(`Failed to load images: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (Array.isArray(data)) {
+            app.uploadedImages = data;
+        } else {
+            console.error('Invalid response format from server');
+        }
+
+        console.log(`Loaded ${app.uploadedImages.length} image(s) from server`);
+
+    } catch (error) {
+        console.error(`Error loading images: ${error.message}`);
+    } finally {
+        app.isLoadingImages = false;
+    }
+}
+
+function getHelpContent() {
+
+    return {
+        "title": "Image Commander Help",
+        "text":
+            "Usage tips:\n" +
+            " - Press Select button and choose one or more pictures.\n" +
+            " - Press Upload Button to upload them.\n" +
+            " - Use mouse or arrow keys to navigate between images.\n" +
+            " - Use F8 (or Del) key or Delete button to delete selected.\n" +
+            " - Press View button to enter / exit preview mode.\n" +
+            " - Press Esc anytime you want.\n" +
+            " - Use Terminal CLI during shell mode if you want.\n" +
+            " - Press Exit button to leave shell mode"
+    };
 }

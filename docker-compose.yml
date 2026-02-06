@@ -4,17 +4,12 @@ services:
     env_file: .env
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./logs:/var/log/postgresql
+      - ./logs/postgresql:/var/log/postgresql  # Разделяем логи
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER"]
       interval: 5s
       timeout: 5s
       retries: 5
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
     networks:
       - backend
 
@@ -22,8 +17,6 @@ services:
     build:
       context: ./back
       dockerfile: Dockerfile
-#    ports:
-#      - "8000:8000"
     env_file:
       - .env
     environment:
@@ -33,7 +26,7 @@ services:
         condition: service_healthy
     volumes:
       - ./back:/app
-      - ./logs:/logs
+      - ./logs/app:/logs  # Логи приложения
       - ./images:/images
     restart: unless-stopped
     networks:
@@ -45,17 +38,36 @@ services:
       context: ./nginx
       dockerfile: Dockerfile
     ports:
-      - "80:80"
+      - "88:80"
     volumes:
       - ./front:/usr/share/nginx/html:ro
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./images:/usr/share/nginx/images
-      - ./logs:/var/log/nginx
-#    restart: unless-stopped
+      - ./images:/usr/share/nginx/images:ro
+      - ./logs/nginx:/var/log/nginx
     depends_on:
       - app
+      - adminer  # Добавляем зависимость
     networks:
       - frontend
+      - backend  # Добавляем сеть для доступа к adminer
+    restart: unless-stopped
+
+  adminer:
+    image: adminer:latest
+    # Убираем проброс порта наружу, доступ только через nginx
+    # ports:
+    #   - "13654:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+      ADMINER_DEFAULT_USERNAME: ${POSTGRES_USER}
+      ADMINER_DEFAULT_PASSWORD: ${POSTGRES_PASSWORD}
+      ADMINER_DEFAULT_DATABASE: ${POSTGRES_DB}
+      ADMINER_PLUGINS: tables-filter tinymce  # Опциональные плагины
+    depends_on:
+      - postgres
+    networks:
+      - backend  # Только внутренняя сеть
+    restart: unless-stopped
 
 volumes:
   postgres_data:

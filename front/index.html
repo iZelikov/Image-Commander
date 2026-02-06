@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Image Commander</title>
-    <link rel="stylesheet" href="static/css/style.css">
+    <link rel="stylesheet" href="static/css/style.css?v=1">
 </head>
 <body class="main_bg">
 <div class="container" id="app">
@@ -14,90 +14,105 @@
            multiple
            style="display: none;"
            @change="handleFiles">
+    <div class="modal-overlay" style="display: none" v-show="showModal" @click.self="showModal=false">
+        <div class="modal-window">
+            <div class="modal-header">
+                <h3>{{ modalContent.title }}</h3>
+                <button class="modal-close" @click="showModal=false">&times;</button>
+            </div>
+            <div class="modal-content">
+                <pre>{{ modalContent.text }}</pre>
+            </div>
+        </div>
+    </div>
     <div class="terminal">
         <header class="title-bar">{{ headerText }}</header>
         <main>
             <div class="shell-container" style="display: none;" v-show="showShell">
                 <div class="shell">
-                    <div class="shell-panel"
-                         id="upload-panel"
-                         @click="activePanel='left'"
-                         :class="{active_panel: activePanel === `left`}"
-                         @keydown.enter="alert('left up')"
-                    >
+                    <div class="panel-container">
                         <div class="viewer" v-show="viewMode">
-                            <img src="static/img/banner.png">
+                            <img :src="viewLink" alt="Preview of uploaded image">
                         </div>
-                        <div class="panel-path">/local/selected/</div>
-                        <table v-if="selectedFilesInfo.length > 0">
-                            <thead>
-                            <tr>
-                                <td>Filename</td>
-                                <td>Ext</td>
-                                <td>Size&nbsp;MB</td>
-                                <td>OK</td>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr v-for="(file, index) in selectedFilesInfo"
-                                :key="index"
-                                :class="{
+                        <div class="shell-panel"
+                             id="upload-panel"
+                             @click="activePanel='left'"
+                             :class="{active_panel: activePanel === `left`}"
+                             @keydown.enter="alert('left up')"
+                        >
+                            <div class="panel-path">/local/selected/</div>
+                            <table v-if="selectedFilesInfo.length > 0">
+                                <thead>
+                                <tr>
+                                    <td>Filename</td>
+                                    <td>Ext</td>
+                                    <td>Size&nbsp;MB</td>
+                                    <td>OK</td>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr v-for="(file, index) in selectedFilesInfo"
+                                    :key="index"
+                                    :class="{
                                     invalid: !file.validation.ok,
                                     selected: index === selectedFileIndex
                                 }"
-                                :data-selected="index === selectedFileIndex && activePanel === 'left'"
-                                @click="selectFile(index, 'left')">
-                                <td>{{ file.shortName }}</td>
-                                <td>{{ file.ext }}</td>
-                                <td style="text-align: right">{{ file.sizeMB }}</td>
-                                <td style="text-align: center">{{ file.validation.ok ? '✓' : ''}}</td>
-                            </tr>
-                            </tbody>
-                        </table>
-                        <p class="file-list" v-else>drop your files here...<br> or click "Select" button</p>
+                                    :data-selected="index === selectedFileIndex && activePanel === 'left'"
+                                    @click="selectFile(index, 'left')">
+                                    <td>{{ file.shortName }}</td>
+                                    <td>{{ file.ext }}</td>
+                                    <td style="text-align: right">{{ file.sizeMB }}</td>
+                                    <td style="text-align: center">{{ file.validation.ok ? '✓' : ''}}</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                            <p class="empty-message" v-else>drop your files here...<br> or click "Select" button</p>
+                        </div>
                     </div>
-                    <div class="shell-panel"
-                         id="storage-panel"
-                         @click="activePanel='right'"
-                         :class="{active_panel: activePanel === `right`}"
-                    >
-                        <div class="panel-path">/host/uploaded/</div>
-                        <table v-if="uploadedImages.length > 0">
-                            <thead>
-                            <tr>
-                                <td>Filename</td>
-                                <td>Ext</td>
-                                <td>Size&nbsp;MB</td>
-                                <td>Link</td>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr v-for="(file, index) in uploadedImages"
-                                :key="index"
-                                :class="{
+                    <div class="panel-container">
+                        <div class="shell-panel"
+                             id="storage-panel"
+                             @click="activePanel='right'"
+                             :class="{active_panel: activePanel === `right`}"
+                        >
+                            <div class="panel-path">/host/uploaded/</div>
+                            <table v-if="uploadedImages.length > 0">
+                                <thead>
+                                <tr>
+                                    <td>Filename</td>
+                                    <td>Ext</td>
+                                    <td>Size&nbsp;MB</td>
+                                    <td>Link</td>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr v-for="(file, index) in uploadedFilesInfo"
+                                    :key="index"
+                                    :class="{
                                     selected: index === uploadedFileIndex
                                 }"
-                                :data-selected="index === uploadedFileIndex && activePanel === 'right'"
-                                @click="selectFile(index, 'right')"
-                            >
-                                <td>{{ file.shortName }}</td>
-                                <td>{{ file.ext }}</td>
-                                <td style="text-align: right">{{ file.sizeMB }}</td>
-                                <td style="text-align: center"><a target="_blank" href="#">[🡇]</a></td>
-                            </tr>
-                            </tbody>
-                        </table>
-                        <p class="file-list" v-else>No files yet...</p>
+                                    :data-selected="index === uploadedFileIndex && activePanel === 'right'"
+                                    @click="selectFile(index, 'right')"
+                                >
+                                    <td>{{ file.shortName }}</td>
+                                    <td>{{ file.ext }}</td>
+                                    <td style="text-align: right">{{ file.sizeMB }}</td>
+                                    <td style="text-align: center"><a target="_blank" :href="file.link">[🡇]</a></td>
+                                </tr>
+                                </tbody>
+                            </table>
+                            <p class="empty-message" v-else>No files yet...</p>
+                        </div>
                     </div>
                 </div>
                 <div class="menu">
                     <ul>
-                        <li>Help</li>
-                        <li @click="btnSelect">Select</li>
-                        <li @click="viewMode=!viewMode">View</li>
-                        <li @click="btnUpload">Upload</li>
-                        <li @click="deleteSelectedFile">Delete</li>
-                        <li @click="btnExit">Exit</li>
+                        <li @click="btnHelp">F1 Help</li>
+                        <li @click="btnSelect">F2 Select</li>
+                        <li @click="btnView">F3 View</li>
+                        <li @click="btnUpload">F4 Upload</li>
+                        <li @click="deleteSelectedFile">F8 Delete</li>
+                        <li @click="btnExit">F10 Exit</li>
                     </ul>
                 </div>
             </div>
