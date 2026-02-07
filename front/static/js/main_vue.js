@@ -20,8 +20,8 @@ createApp({
             headerText: headerStrings[0],
             selectedFiles: [],
             uploadedImages: [],
-            showShell: true,
-            viewMode: false,
+            showShell: getCookie('showShell') === 'true' || false,
+            viewMode: getCookie('viewMode') === 'true' || false,
             showModal: false,
             terminalText: '',
             commandInput: '',
@@ -32,7 +32,7 @@ createApp({
             selectedFileIndex: -1,
             uploadedFileIndex: -1,
             currentPage: 1,
-            pageSize: 10,
+            pageSize: 20,
             totalImages: 0,
             isLoadingImages: false,
             isDragOver: false,
@@ -55,10 +55,14 @@ createApp({
                 this.historyIndex = i;
             }
         },
-        getMaxImagesPerPage(){
+        getMaxImagesPerPage() {
             const panel = document.getElementById('storage-panel');
             const height = panel.clientHeight;
-            this.pageSize = Math.floor(height/39) - 2;
+            if (!height) {
+
+            } else {
+                this.pageSize = Math.floor(height / 39) - 2;
+            }
         },
         btnHelp() {
             this.modalContent = getHelpContent();
@@ -86,7 +90,12 @@ createApp({
             setTimeout(() => {
                 this.showShell = true;
                 this.headerText = headerStrings[1];
-                this.toTerminal(`Shell is ready`);
+                this.$nextTick(() => {
+                    this.getMaxImagesPerPage();
+                    loadUploadedImages(this).then(() => {
+                        this.toTerminal(`Shell is ready`);
+                    });
+                });
             }, 500)
         },
         executeCommand() {
@@ -273,7 +282,7 @@ createApp({
         }
     },
     computed: {
-        maxPages(){
+        maxPages() {
             return Math.ceil(this.totalImages / this.pageSize);
         },
         selectedFilesInfo() {
@@ -324,6 +333,14 @@ createApp({
             if (this.uploadedFileIndex >= 0) {
                 return this.uploadedFilesInfo[this.uploadedFileIndex].link;
             } else return '#';
+        },
+    },
+    watch: {
+        showShell(newVal) {
+            setCookie('showShell', newVal);
+        },
+        viewMode(newVal) {
+            setCookie('viewMode', newVal);
         },
     },
     mounted() {
@@ -536,6 +553,7 @@ async function loadUploadedImages(app) {
         app.isLoadingImages = false;
     }
 }
+
 function getHelpContent() {
 
     return {
@@ -551,4 +569,26 @@ function getHelpContent() {
             " - Use Terminal CLI during shell mode if you want.\n" +
             " - Press Exit button to leave shell mode"
     };
+}
+
+
+function setCookie(name, value, days = 7) {
+    let expires = "";
+    if (days) {
+        const date = new Date();
+        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+        expires = "; expires=" + date.toUTCString();
+    }
+    document.cookie = name + "=" + (value || "") + expires + "; path=/";
+}
+
+function getCookie(name) {
+    const nameEQ = name + "=";
+    const ca = document.cookie.split(';');
+    for (let i = 0; i < ca.length; i++) {
+        let c = ca[i];
+        while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+        if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+    }
+    return null;
 }
