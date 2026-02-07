@@ -22,19 +22,12 @@ POSTGRES_USER=username
 POSTGRES_PASSWORD=$(openssl rand -base64 32)
 
 EOF
-    echo ".env файл создан с случайным паролем"
+    echo ".env файл создан со случайным паролем для PostgreSQL."
 fi
 
 # Установка прав
 chmod 755 images backups logs
 chmod 600 .env
-
-# Создание файлов для бэкапов если их нет
-if [ ! -f backup/backup.sh ]; then
-    mkdir -p backup
-    # Сюда нужно скопировать файлы из шагов выше
-    echo "Скопируйте файлы бэкапа в папку backup/"
-fi
 
 echo "Инициализация завершена!"
 echo "Запустите: docker-compose up --build"
