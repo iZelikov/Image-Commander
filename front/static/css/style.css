@@ -63,16 +63,16 @@ ul {
     font-family: var(--terminal_font), monospace;
     font-weight: var(--terminal_font_weight);
     font-size: var(--terminal_font_size);
-    padding: 20px;
+    padding: 2em 3em;
 }
 
 .loader-content {
     width: 100%;
-    max-width: 800px;
+    height: 100%;
+    /*max-width: 900px;*/
     background-color: rgba(0, 0, 0, 0.7);
     border: 3px double var(--terminal_color);
     padding: 0 var(--padding_main);
-    height: 80vh;
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -148,7 +148,7 @@ ul {
 .loader-progress-fill {
     height: 100%;
     background-color: var(--terminal_color);
-    width: 0%;
+    width: 0;
     transition: width 0.3s ease;
 }
 

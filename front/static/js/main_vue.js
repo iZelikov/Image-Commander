@@ -324,10 +324,7 @@ createApp({
                 { message: '✓ Configuration loaded', type: 'success', delay: 100 },
                 { message: 'Initializing command processor...', type: 'system', delay: 150 },
                 { message: '✓ Command processor ready', type: 'success', delay: 100 },
-                { message: 'Loading graphical interface...', type: 'system', delay: 200 },
-                { message: '✓ GUI initialized', type: 'success', delay: 100 },
                 { message: 'Booting complete!', type: 'info', delay: 200 },
-                { message: 'Welcome to Image Commander', type: 'system', delay: 100 },
             ];
 
             // Добавляем сообщения по одному
