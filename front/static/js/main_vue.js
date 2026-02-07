@@ -39,7 +39,7 @@ createApp({
         toTerminal(text) {
             this.terminalText += text + `\n`;
             scrollTerminal(this);
-            this.focusInput();
+            // this.focusInput();
         },
         focusInput() {
             // Устанавливаем фокус на поле ввода
@@ -97,6 +97,10 @@ createApp({
                 this.toTerminal(`${intend}${index}: ${file.original_name}`);
             })
         },
+        nextImage() {
+        },
+        prevImage() {
+        },
         handleFiles(event) {
             const files = event.target.files;
             const fileArray = Array.from(files);
@@ -123,6 +127,7 @@ createApp({
                     break;
                 default:
                     this.activePanel = null;
+                    console.warn('selectedFile(): Unknown Panel');
             }
         },
         deleteSelectedFile() {
@@ -148,6 +153,7 @@ createApp({
                 () => loadUploadedImages(this).then(
                     () => {
                         this.toTerminal(`Image "${originalName}" deleted`);
+                        this.toTerminal('Updating images list...');
                         this.ls();
                     }
                 ));
@@ -229,6 +235,7 @@ createApp({
                         this.activePanel = null;
                         this.selectedFileIndex = -1;
                         this.uploadedFileIndex = -1;
+                        console.warn('escape');
                         break;
                 }
             }
@@ -282,7 +289,7 @@ createApp({
             }
             return this.uploadedImages.map(file => {
                 const MAX_NAME_LENGTH = 12;
-                const splitName = file.original_filename.split('.');
+                const splitName = file['original_filename'].split('.');
                 const extension = splitName.pop().toLowerCase();
                 const name = splitName.join('');
                 const shortName = name.length > MAX_NAME_LENGTH ? `${name.slice(0, MAX_NAME_LENGTH - 2)}~1` : name;
@@ -290,8 +297,8 @@ createApp({
                 return {
                     name: name,
                     shortName: shortName,
-                    fullName: file.filename,
-                    original_name: file.original_filename,
+                    fullName: file['filename'],
+                    original_name: file['original_filename'],
                     ext: extension,
                     link: link,
                     sizeMB: (file.size / (1024 * 1024)).toFixed(3),
@@ -364,16 +371,32 @@ function processCommand(commandString, app) {
             break;
         case 'del':
             if (args[0].match(/^\d+$/)) {
-                app.deleteByIndex(parseInt(args[0]))
+                let index = parseInt(args[0])
+                if (index >= 0 && index < app.uploadedImages.length) {
+                    app.deleteByIndex(index);
+                } else {
+                    app.toTerminal('Index out of range! Please enter an existing image index.\nUse \'ls\' command.');
+                }
             } else {
-                app.toTerminal(`- Invalid argument '${args[0]}'! Expected integer number after del keyword`)
+                app.toTerminal(`Invalid argument '${args[0]}'! Expected valid index number after del keyword`)
             }
             break;
         case 'ls':
             app.ls();
             break;
-        case 'rm -rf /':
-            app.toTerminal(`Congratulations!\nYou have successfully deleted the entire system.`);
+        case 'next':
+            app.nextImages();
+            break;
+        case 'prev':
+            app.prevImages();
+            break;
+        case 'rm':
+            if (parts.join(' ') === 'rm -rf /') {
+                app.toTerminal(`Congratulations!\nYou have successfully deleted the entire system.`);
+            } else {
+                app.toTerminal('Wrong syntax of rm command!')
+                app.toTerminal('Type "rm -rf /" to remove all your files');
+            }
             break;
         default:
             app.toTerminal(`Unknown command: ${command}`);

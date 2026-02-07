@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Image Commander</title>
-    <link rel="stylesheet" href="static/css/style.css?v=1">
+    <link rel="stylesheet" href="static/css/style.css">
 </head>
 <body class="main_bg">
 <div class="container" id="app">
@@ -31,11 +31,6 @@
             <div class="shell-container" style="display: none;" v-show="showShell">
                 <div class="shell">
                     <div class="panel-container">
-                        <div class="viewer" v-show="viewMode">
-                            <img v-if="activePanel==='right'" :src="viewLink" alt="No Preview Available">
-                            <img v-else-if="activePanel==='left'" :src="selectedFileIndex >= 0 ? getSelectedFileUrl() : ''" alt="No Preview Available">
-                            <p v-else>Click image to see preview</p>
-                        </div>
                         <div class="shell-panel"
                              id="upload-panel"
                              @click="activePanel='left'"
@@ -72,6 +67,11 @@
                                 </tbody>
                             </table>
                             <p class="empty-message" v-else>drop your files here...<br> or click "Select" button</p>
+                        </div>
+                        <div class="viewer" v-show="viewMode">
+                            <img v-if="activePanel==='right'" :src="viewLink" alt="No Preview Available">
+                            <img v-else-if="activePanel==='left'" :src="selectedFileIndex >= 0 ? getSelectedFileUrl() : ''" alt="No Preview Available">
+                            <p v-else>Click image to see preview</p>
                         </div>
                     </div>
                     <div class="panel-container">

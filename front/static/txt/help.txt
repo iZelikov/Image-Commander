@@ -1,10 +1,12 @@
 Image Commander commands list:
   help      - show this tips
-  shell     - enter shell mode
-  exit      - exit shell mode
+  shell     - enter GUI-shell mode
+  exit      - back to terminal mode
   select    - select files to upload
   upload    - upload selected files
-  del i     - delete uploaded file by index i
   ls        - list uploaded files by "index: filename"
+  del i     - delete uploaded file by index i
+  next      - get next part of files from BD
+  prev      - get previous part of files from BD
   clear     - clear terminal output
   rm -rf /  - delete all files

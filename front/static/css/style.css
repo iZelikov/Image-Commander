@@ -142,6 +142,7 @@ ul {
     text-align: center;
     min-height: 200px;
     max-height: 30vh;
+    border: 3px double var(--terminal_color_dark);
 }
 
 .viewer img {
