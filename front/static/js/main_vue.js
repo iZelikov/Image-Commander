@@ -36,13 +36,13 @@ createApp({
             totalImages: 0,
             isLoadingImages: false,
             isDragOver: false,
+            resizeTimeout: null,
         }
     },
     methods: {
         toTerminal(text) {
             this.terminalText += text + `\n`;
             scrollTerminal(this);
-            // this.focusInput();
         },
         focusInput() {
             // Устанавливаем фокус на поле ввода
@@ -55,14 +55,14 @@ createApp({
                 this.historyIndex = i;
             }
         },
-        getMaxImagesPerPage() {
+        setMaxImagesPerPage() {
             const panel = document.getElementById('storage-panel');
-            const height = panel.clientHeight;
-            if (!height) {
-
-            } else {
-                this.pageSize = Math.floor(height / 39) - 2;
+            if (!panel || panel.clientHeight === 0) {
+                return;
             }
+            const height = panel.clientHeight;
+            const calculatedSize = Math.floor(height / 39) - 2;
+            this.pageSize = Math.max(5, Math.min(calculatedSize, 50));
         },
         btnHelp() {
             this.modalContent = getHelpContent();
@@ -91,7 +91,7 @@ createApp({
                 this.showShell = true;
                 this.headerText = headerStrings[1];
                 this.$nextTick(() => {
-                    this.getMaxImagesPerPage();
+                    this.setMaxImagesPerPage();
                     loadUploadedImages(this).then(() => {
                         this.toTerminal(`Shell is ready`);
                     });
@@ -260,6 +260,23 @@ createApp({
                 }
             }
         },
+        handleWindowResize() {
+            if (this.resizeTimeout) {
+                clearTimeout(this.resizeTimeout);
+            }
+            this.resizeTimeout = setTimeout(() => {
+                if (this.showShell) {
+                    this.recalculatePagination();
+                    loadUploadedImages(this).then();
+                }
+            }, 500);
+        },
+        recalculatePagination() {
+            let globalIndex = ((this.currentPage - 1)*this.pageSize) + this.uploadedFileIndex;
+            this.setMaxImagesPerPage();
+            this.currentPage = Math.ceil(globalIndex/this.pageSize);
+            this.uploadedFileIndex = globalIndex % this.pageSize;
+        },
         handleDragOver(e) {
             this.isDragOver = true;
             e.dataTransfer.dropEffect = 'copy';
@@ -350,11 +367,22 @@ createApp({
             this.toTerminal(welcomeText)
             this.focusInput();
         });
-        this.getMaxImagesPerPage();
-        loadUploadedImages(this).then(() => {
-            console.log("Image list loaded")
-        });
+        if (this.showShell) {
+            this.$nextTick(() => {
+                setTimeout(() => {
+                    this.setMaxImagesPerPage();
+                    loadUploadedImages(this).then();
+                }, 100);
+            });
+        } else {
+            loadUploadedImages(this).then();
+        }
         document.addEventListener('keydown', this.handleKeyDown.bind(this));
+        window.addEventListener('resize', this.handleWindowResize.bind(this));
+    },
+    beforeUnmount() {
+        window.removeEventListener('resize', this.handleWindowResize);
+        document.removeEventListener('keydown', this.handleKeyDown);
     }
 }).mount('#app')
 
