@@ -1,4 +1,4 @@
-const version = '0.0.1';
+const version = '0.0.2';
 const API_LINKS = {
     "get": "/api/get_images/",
     "upload": "/api/upload/",
@@ -32,6 +32,7 @@ createApp({
             selectedFileIndex: -1,
             uploadedFileIndex: -1,
             isLoadingImages: false,
+            isDragOver: false,
         }
     },
     methods: {
@@ -83,16 +84,27 @@ createApp({
         executeCommand() {
             const command = this.commandInput.toLowerCase().trim();
             this.commandInput = '';
-            this.toTerminal(`> ${command}`);
+            this.toTerminal(`>>> ${command}`);
             if (command) {
                 this.commandHistory.push(command);
                 this.historyIndex = this.commandHistory.length;
                 processCommand(command, this);
             }
         },
+        ls() {
+            this.toTerminal('Uploaded images:')
+            this.uploadedFilesInfo.forEach((file, index) => {
+                this.toTerminal(`${intend}${index}: ${file.original_name}`);
+            })
+        },
         handleFiles(event) {
             const files = event.target.files;
-            this.selectedFiles = Array.from(files);
+            const fileArray = Array.from(files);
+            this.addFiles(fileArray);
+        },
+        addFiles(fileArray) {
+            if (fileArray.length === 0) return;
+            this.selectedFiles = fileArray;
             this.toTerminal('You have selected files:')
             this.selectedFilesInfo.forEach((file, index) => {
                 this.toTerminal(`${intend}${file.validation.ok ? '✓' : 'x'} ${file.fullName} (${file.sizeMB} MB) ${file.validation.message}`)
@@ -124,13 +136,21 @@ createApp({
             }
             if (this.activePanel === 'right') {
                 const index = this.uploadedFileIndex;
-                const filename_to_delete = this.uploadedImages[index]['filename'];
-                fetch(
-                    API_LINKS.delete + filename_to_delete,
-                    {method: 'DELETE'}).then(
-                    () => loadUploadedImages(this).then(
-                        () => console.log(filename_to_delete + ' was removed.')));
+                this.deleteByIndex(index);
             }
+        },
+        deleteByIndex(index) {
+            const filename = this.uploadedImages[index]['filename'];
+            const originalName = this.uploadedImages[index]["original_filename"]
+            fetch(
+                API_LINKS.delete + filename,
+                {method: 'DELETE'}).then(
+                () => loadUploadedImages(this).then(
+                    () => {
+                        this.toTerminal(`Image "${originalName}" deleted`);
+                        this.ls();
+                    }
+                ));
         },
         changeFile(shift) {
             switch (this.activePanel) {
@@ -211,6 +231,20 @@ createApp({
                         this.uploadedFileIndex = -1;
                         break;
                 }
+            }
+        },
+        handleDragOver(e) {
+            this.isDragOver = true;
+            e.dataTransfer.dropEffect = 'copy';
+        },
+        handleDragLeave() {
+            this.isDragOver = false;
+        },
+        handleDrop(e) {
+            this.isDragOver = false;
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                this.addFiles(Array.from(files));
             }
         },
         getSelectedFileUrl() {
@@ -299,7 +333,10 @@ async function loadTextFile(fileName) {
     throw new Error(`Failed to load file ${fileName}`);
 }
 
-function processCommand(command, app) {
+function processCommand(commandString, app) {
+    const parts = commandString.toLowerCase().trim().split(/\s+/g);
+    const command = parts[0] || '';
+    const args = parts.slice(1);
     switch (command) {
         case '':
             break;
@@ -325,11 +362,15 @@ function processCommand(command, app) {
         case 'upload':
             uploadFiles(app);
             break;
+        case 'del':
+            if (args[0].match(/^\d+$/)) {
+                app.deleteByIndex(parseInt(args[0]))
+            } else {
+                app.toTerminal(`- Invalid argument '${args[0]}'! Expected integer number after del keyword`)
+            }
+            break;
         case 'ls':
-            app.toTerminal('Uploaded images:')
-            app.uploadedFilesInfo.forEach(file => {
-                app.toTerminal(intend + file.original_name);
-            })
+            app.ls();
             break;
         case 'rm -rf /':
             app.toTerminal(`Congratulations!\nYou have successfully deleted the entire system.`);

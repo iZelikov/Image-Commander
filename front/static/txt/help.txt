@@ -4,6 +4,7 @@ Image Commander commands list:
   exit      - exit shell mode
   select    - select files to upload
   upload    - upload selected files
-  ls        - list uploaded files
+  del i     - delete uploaded file by index i
+  ls        - list uploaded files by "index: filename"
   clear     - clear terminal output
   rm -rf /  - delete all files

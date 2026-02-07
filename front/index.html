@@ -39,8 +39,11 @@
                         <div class="shell-panel"
                              id="upload-panel"
                              @click="activePanel='left'"
-                             :class="{active_panel: activePanel === `left`}"
+                             :class="{active_panel: activePanel === `left`, dragover: isDragOver}"
                              @keydown.enter="alert('left up')"
+                             @dragover.prevent="handleDragOver"
+                             @dragleave.prevent="handleDragLeave"
+                             @drop.prevent="handleDrop"
                         >
                             <div class="panel-path">/local/selected/</div>
                             <table v-if="selectedFilesInfo.length > 0">
