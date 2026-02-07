@@ -212,6 +212,12 @@ createApp({
                         break;
                 }
             }
+        },
+        getSelectedFileUrl() {
+            if (this.selectedFileIndex >= 0 && this.selectedFiles[this.selectedFileIndex]) {
+                return URL.createObjectURL(this.selectedFiles[this.selectedFileIndex]);
+            }
+            return '';
         }
     },
     computed: {
@@ -447,6 +453,14 @@ async function loadUploadedImages(app) {
     } finally {
         app.isLoadingImages = false;
     }
+}
+
+async function getDataUrl(file) {
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.readAsDataURL(file);
+    });
 }
 
 function getHelpContent() {

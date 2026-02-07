@@ -31,8 +31,9 @@
             <div class="shell-container" style="display: none;" v-show="showShell">
                 <div class="shell">
                     <div class="panel-container">
-                        <div class="viewer" v-show="viewMode">
-                            <img :src="viewLink" alt="Preview of uploaded image">
+                        <div class="viewer" v-show="viewMode&&activePanel">
+                            <img v-if="activePanel==='right'" :src="viewLink" alt="No Preview Available">
+                            <img v-else-if="activePanel==='left'" :src="selectedFileIndex >= 0 ? getSelectedFileUrl() : ''" alt="No Preview Available">
                         </div>
                         <div class="shell-panel"
                              id="upload-panel"

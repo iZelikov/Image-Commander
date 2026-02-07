@@ -141,6 +141,7 @@ ul {
     justify-content: center;
     text-align: center;
     min-height: 200px;
+    max-height: 30vh;
 }
 
 .viewer img {
@@ -165,8 +166,12 @@ ul {
 }
 
 .selected {
-    background-color: var(--terminal_color);
+    background-color: var(--terminal_color_dark);
     color: var(--terminal_bg);
+}
+
+.active_panel .selected {
+    background-color: var(--terminal_color);
 }
 
 .shell-panel table .selected a {
