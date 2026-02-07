@@ -108,6 +108,17 @@
                             </table>
                             <p class="empty-message" v-else>No files yet...</p>
                         </div>
+                        <div v-show="maxPages>1" class="pagination">
+                            <div class="page-buttons"
+                                 :class="{disabled: currentPage===1}"
+                                 @click="nextPage(-1)"><< prev
+                            </div>
+                            <div>||</div>
+                            <div class="page-buttons"
+                                 :class="{disabled: currentPage===maxPages}"
+                                 @click="nextPage(1)">next >>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="menu">

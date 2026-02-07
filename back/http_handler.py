@@ -2,16 +2,11 @@ import http.server
 import json
 import logging
 import urllib.parse
-from pathlib import Path
-import sys
-
-sys.path.append(str(Path(__file__).parent))
-logger = logging.getLogger(__name__)
-
 from config import DEBUG, IMAGE_DIR
-from db import get_images_metadata, save_metadata, delete_metadata
+from db import get_images_metadata, save_metadata, delete_metadata, get_images_count
 from multipart_parser import MultipartParser, validate_image_file, save_uploaded_file
 
+logger = logging.getLogger(__name__)
 
 class ImageRequestHandler(http.server.BaseHTTPRequestHandler):
 
@@ -30,18 +25,16 @@ class ImageRequestHandler(http.server.BaseHTTPRequestHandler):
         parsed_path = urllib.parse.urlparse(self.path)
         path = parsed_path.path
 
-        if path == '/get_images/' or path == '/get_images':
+        if path.startswith('/get_images'):
             try:
-
                 query_params = urllib.parse.parse_qs(parsed_path.query)
                 page = int(query_params.get('page', [1])[0])
-                page_size = int(query_params.get('page_size', [10])[0])
-
+                page_size = int(query_params.get('size', [10])[0])
                 images = get_images_metadata(page=page, page_size=page_size)
-
-                result = []
+                images_count = get_images_count()
+                files = []
                 for img in images:
-                    result.append({
+                    files.append({
                         'id': img[0],
                         'filename': img[1],
                         'original_filename': img[2],
@@ -49,7 +42,7 @@ class ImageRequestHandler(http.server.BaseHTTPRequestHandler):
                         'upload_time': img[4].isoformat() if img[4] else None,
                         'file_type': img[5]
                     })
-
+                result = {'files': files, 'total': images_count}
                 self._set_headers(200)
                 self.wfile.write(json.dumps(result).encode())
 
@@ -71,7 +64,7 @@ class ImageRequestHandler(http.server.BaseHTTPRequestHandler):
         parsed_path = urllib.parse.urlparse(self.path)
         path = parsed_path.path
 
-        if path == '/upload/' or path == '/upload':
+        if path.startswith('/upload'):
             try:
                 content_length = int(self.headers.get('Content-Length', 0))
 

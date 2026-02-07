@@ -20,7 +20,7 @@ createApp({
             headerText: headerStrings[0],
             selectedFiles: [],
             uploadedImages: [],
-            showShell: false,
+            showShell: true,
             viewMode: false,
             showModal: false,
             terminalText: '',
@@ -31,6 +31,9 @@ createApp({
             activePanel: null,
             selectedFileIndex: -1,
             uploadedFileIndex: -1,
+            currentPage: 1,
+            pageSize: 10,
+            totalImages: 0,
             isLoadingImages: false,
             isDragOver: false,
         }
@@ -51,6 +54,11 @@ createApp({
                 this.commandInput = this.commandHistory[i] || '';
                 this.historyIndex = i;
             }
+        },
+        getMaxImagesPerPage(){
+            const panel = document.getElementById('storage-panel');
+            const height = panel.clientHeight;
+            this.pageSize = Math.floor(height/39) - 2;
         },
         btnHelp() {
             this.modalContent = getHelpContent();
@@ -97,9 +105,12 @@ createApp({
                 this.toTerminal(`${intend}${index}: ${file.original_name}`);
             })
         },
-        nextImage() {
-        },
-        prevImage() {
+        nextPage(n) {
+            const page = this.currentPage + n;
+            if (page >= 1 && page <= this.maxPages) {
+                this.currentPage = page;
+                loadUploadedImages(this).then();
+            }
         },
         handleFiles(event) {
             const files = event.target.files;
@@ -262,6 +273,9 @@ createApp({
         }
     },
     computed: {
+        maxPages(){
+            return Math.ceil(this.totalImages / this.pageSize);
+        },
         selectedFilesInfo() {
             if (!Array.isArray(this.selectedFiles)) {
                 return [];
@@ -319,6 +333,7 @@ createApp({
             this.toTerminal(welcomeText)
             this.focusInput();
         });
+        this.getMaxImagesPerPage();
         loadUploadedImages(this).then(() => {
             console.log("Image list loaded")
         });
@@ -385,10 +400,10 @@ function processCommand(commandString, app) {
             app.ls();
             break;
         case 'next':
-            app.nextImages();
+            app.nextPage();
             break;
         case 'prev':
-            app.prevImages();
+            app.prevPage();
             break;
         case 'rm':
             if (parts.join(' ') === 'rm -rf /') {
@@ -491,14 +506,16 @@ async function loadUploadedImages(app) {
 
     try {
         console.log('Loading images list from server...');
-
-        const response = await fetch(API_LINKS.get);
+        const link = `${API_LINKS.get}?page=${app.currentPage}&size=${app.pageSize}`
+        const response = await fetch(link);
 
         if (!response.ok) {
             console.error(`Failed to load images: ${response.status}`);
         }
 
-        const data = await response.json();
+        const responseJson = await response.json();
+        const data = responseJson['files'];
+        const total = responseJson['total'];
 
         if (app.uploadedFileIndex >= data.length) {
             app.uploadedFileIndex = data.length === 0 ? -1 : data.length - 1;
@@ -506,6 +523,7 @@ async function loadUploadedImages(app) {
 
         if (Array.isArray(data)) {
             app.uploadedImages = data;
+            app.totalImages = total;
         } else {
             console.error('Invalid response format from server');
         }
@@ -518,15 +536,6 @@ async function loadUploadedImages(app) {
         app.isLoadingImages = false;
     }
 }
-
-async function getDataUrl(file) {
-    return new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.readAsDataURL(file);
-    });
-}
-
 function getHelpContent() {
 
     return {

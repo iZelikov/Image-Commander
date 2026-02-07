@@ -8,6 +8,7 @@ from db import init_tables
 logger = logging.getLogger(__name__)
 
 def run_server():
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
     init_tables()
 

@@ -44,6 +44,10 @@ ul {
     font-family: var(--terminal_font), monospace;
     font-weight: var(--terminal_font_weight);
     font-size: var(--terminal_font_size);
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 .terminal {
@@ -83,6 +87,10 @@ ul {
 
 .terminal-content pre {
     margin: 0;
+    -webkit-user-select: all;
+    -moz-user-select: all;
+    -ms-user-select: all;
+    user-select: all;
 }
 
 .shell-container {
@@ -150,6 +158,29 @@ ul {
     max-height: 100%;
 }
 
+.disabled {
+}
+
+.pagination {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    color: var(--terminal_color);
+}
+
+.pagination .page-buttons {
+    padding: 0 var(--padding_small);
+}
+
+.pagination .page-buttons:hover {
+    color: var(--terminal_color_dark);
+    cursor: pointer;
+}
+
+.pagination .disabled, .pagination .disabled:hover {
+    color: var(--terminal_bg);
+    cursor: default;
+}
 
 .shell-panel table thead {
     /*position: sticky;*/
@@ -182,6 +213,7 @@ ul {
 .shell-panel table tbody tr:hover, .shell-panel table tbody tr:active {
     color: var(--terminal_bg);
     background-color: var(--terminal_color_dark);
+    cursor:pointer;
 }
 
 .shell-panel table a {
@@ -192,6 +224,7 @@ ul {
 .shell-panel table a:hover {
     color: var(--terminal_bg);
     text-decoration-line: underline;
+    cursor: zoom-in;
 }
 
 

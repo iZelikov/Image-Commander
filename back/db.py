@@ -75,11 +75,20 @@ def delete_metadata(filename):
 
 def get_images_metadata(page=1, page_size=10) -> list:
     offset = (page - 1) * page_size
+    limit = page_size
     query = """
         SELECT * FROM images 
-        ORDER BY upload_time DESC;
+        ORDER BY upload_time DESC
+        LIMIT %s OFFSET %s;
     """
-    return fetch_query(query)
+    return fetch_query(query, (limit, offset))
+
+def get_images_count() -> int:
+    query = """
+        SELECT COUNT(*) FROM images;
+    """
+    result = fetch_query(query)
+    return result[0][0]
 
 def get_image_metadata(filename) -> list:
     query = """
