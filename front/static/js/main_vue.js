@@ -1,4 +1,4 @@
-const version = '0.0.3';
+const version = '0.0.5';
 const API_LINKS = {
     "get": "/api/get_images/",
     "upload": "/api/upload/",
