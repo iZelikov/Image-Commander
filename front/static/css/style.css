@@ -50,6 +50,108 @@ ul {
     user-select: none;
 }
 
+.loader {
+    box-sizing: border-box;
+    height: 100%;
+    width: 100%;
+    background-color: var(--terminal_bg);
+    color: var(--terminal_color);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--terminal_font), monospace;
+    font-weight: var(--terminal_font_weight);
+    font-size: var(--terminal_font_size);
+    padding: 20px;
+}
+
+.loader-content {
+    width: 100%;
+    max-width: 800px;
+    background-color: rgba(0, 0, 0, 0.7);
+    border: 3px double var(--terminal_color);
+    padding: 0 var(--padding_main);
+    height: 80vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.loader-terminal {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+}
+
+.loader-terminal pre {
+    /*font-size: 0.75em;*/
+}
+
+.loader-messages {
+    height: 100%;
+    overflow-y: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.loader-messages::-webkit-scrollbar {
+    display: none;
+}
+
+.loader-message {
+    margin: 5px 0;
+    line-height: 1.4;
+    opacity: 0;
+    animation: fadeIn 0.3s ease forwards;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.loader-cursor {
+    display: inline-block;
+    width: 10px;
+    height: 20px;
+    background-color: var(--terminal_color);
+    animation: blink 1s infinite;
+    margin-left: 5px;
+    vertical-align: middle;
+}
+
+@keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+}
+
+.loader-progress {
+    margin-top: 15px;
+    padding-top: 10px;
+    border-top: 1px solid var(--terminal_color_dark);
+    color: var(--terminal_color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.loader-progress-bar {
+    flex: 1;
+    height: 8px;
+    background-color: var(--terminal_color_dark);
+    border-radius: 4px;
+    margin: 0 10px;
+    overflow: hidden;
+}
+
+.loader-progress-fill {
+    height: 100%;
+    background-color: var(--terminal_color);
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
 .terminal {
     display: flex;
     flex-direction: column;
@@ -71,7 +173,7 @@ ul {
     gap: var(--padding_xs);
     flex: 1;
     min-height: 0;
-    padding: var(--padding_small);
+    padding: var(--padding_small) var(--padding_main);
 }
 
 .terminal footer {
@@ -87,10 +189,6 @@ ul {
 
 .terminal-content pre {
     margin: 0;
-    -webkit-user-select: all;
-    -moz-user-select: all;
-    -ms-user-select: all;
-    user-select: all;
 }
 
 .shell-container {

@@ -1,4 +1,4 @@
-const version = '0.0.2';
+const version = '0.0.3';
 const API_LINKS = {
     "get": "/api/get_images/",
     "upload": "/api/upload/",
@@ -36,6 +36,12 @@ createApp({
             totalImages: 0,
             isLoadingImages: false,
             isDragOver: false,
+            isPreloading: true,
+            isLoading: true,
+            loaderMessages: [],
+            loaderProgress: 0,
+            currentLoaderStep: 0,
+            totalLoaderSteps: 7,
             resizeTimeout: null,
         }
     },
@@ -118,7 +124,14 @@ createApp({
             const page = this.currentPage + n;
             if (page >= 1 && page <= this.maxPages) {
                 this.currentPage = page;
-                loadUploadedImages(this).then();
+                if (!this.showShell) {
+                    this.toTerminal('Updating images list...');
+                }
+                loadUploadedImages(this).then(() => {
+                    if (!this.showShell) {
+                        this.ls();
+                    }
+                });
             }
         },
         handleFiles(event) {
@@ -255,7 +268,7 @@ createApp({
                         this.activePanel = null;
                         this.selectedFileIndex = -1;
                         this.uploadedFileIndex = -1;
-                        console.warn('escape');
+                        this.showModal = false;
                         break;
                 }
             }
@@ -272,9 +285,9 @@ createApp({
             }, 500);
         },
         recalculatePagination() {
-            let globalIndex = ((this.currentPage - 1)*this.pageSize) + this.uploadedFileIndex;
+            let globalIndex = ((this.currentPage - 1) * this.pageSize) + this.uploadedFileIndex;
             this.setMaxImagesPerPage();
-            this.currentPage = Math.ceil(globalIndex/this.pageSize);
+            this.currentPage = Math.ceil(globalIndex / this.pageSize);
             this.uploadedFileIndex = globalIndex % this.pageSize;
         },
         handleDragOver(e) {
@@ -296,7 +309,59 @@ createApp({
                 return URL.createObjectURL(this.selectedFiles[this.selectedFileIndex]);
             }
             return '';
-        }
+        },
+        async initLoaderAnimation() {
+            // Массив шагов загрузки с сообщениями
+            const steps = [
+                { message: `Starting Image Commander v${version}...`, type: 'system', delay: 100 },
+                { message: 'Initializing terminal interface...', type: 'system', delay: 150 },
+                { message: '✓ Terminal interface ready', type: 'success', delay: 100 },
+                { message: 'Loading file system driver...', type: 'system', delay: 150 },
+                { message: '✓ File system ready', type: 'success', delay: 100 },
+                { message: 'Connecting to image storage...', type: 'system', delay: 200 },
+                { message: '✓ Connection established', type: 'success', delay: 100 },
+                { message: 'Loading system configuration...', type: 'system', delay: 150 },
+                { message: '✓ Configuration loaded', type: 'success', delay: 100 },
+                { message: 'Initializing command processor...', type: 'system', delay: 150 },
+                { message: '✓ Command processor ready', type: 'success', delay: 100 },
+                { message: 'Loading graphical interface...', type: 'system', delay: 200 },
+                { message: '✓ GUI initialized', type: 'success', delay: 100 },
+                { message: 'Booting complete!', type: 'info', delay: 200 },
+                { message: 'Welcome to Image Commander', type: 'system', delay: 100 },
+            ];
+
+            // Добавляем сообщения по одному
+            for (let i = 0; i < steps.length; i++) {
+                const step = steps[i];
+
+                // Добавляем сообщение
+                this.loaderMessages.push({
+                    text: step.message,
+                    type: step.type
+                });
+
+                // Обновляем прогресс
+                this.loaderProgress = Math.round((i + 1) / steps.length * 100);
+                this.currentLoaderStep = i + 1;
+
+                // Ждем перед следующим сообщением
+                await this.sleep(step.delay);
+            }
+
+            // Короткая пауза в конце
+            await this.sleep(300);
+
+            // Завершаем загрузку
+            this.isLoading = false;
+
+            // Устанавливаем фокус на поле ввода
+            this.$nextTick(() => {
+                this.focusInput();
+            });
+        },
+        sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        },
     },
     computed: {
         maxPages() {
@@ -359,24 +424,43 @@ createApp({
         viewMode(newVal) {
             setCookie('viewMode', newVal);
         },
+        uploadedFilesInfo(newVal) {
+            if (newVal.length === 0 && this.currentPage > 1) {
+                this.nextPage(-1);
+                this.uploadedFileIndex = this.pageSize -1;
+            }
+        }
     },
     mounted() {
-        loadRandomMemes().then((memeText) => {
-            this.toTerminal(memeText);
+        this.isPreloading = false;
+        this.initLoaderAnimation().then(() => {
+            return Promise.all([
+                loadRandomMemes().then((memeText) => {
+                    this.toTerminal(memeText);
+                }),
+                loadUploadedImages(this)
+            ]);
         }).then(() => {
-            this.toTerminal(welcomeText)
-            this.focusInput();
-        });
-        if (this.showShell) {
-            this.$nextTick(() => {
-                setTimeout(() => {
-                    this.setMaxImagesPerPage();
-                    loadUploadedImages(this).then();
-                }, 100);
+            this.toTerminal(welcomeText);
+            if (this.showShell) {
+                this.$nextTick(() => {
+                    setTimeout(() => {
+                        this.setMaxImagesPerPage();
+                        loadUploadedImages(this).then();
+                    }, 100);
+                });
+            }
+        }).catch(error => {
+            console.error("Ошибка загрузки:", error);
+            this.loaderMessages.push({
+                text: `ERROR: ${error.message}`,
+                type: 'error'
             });
-        } else {
-            loadUploadedImages(this).then();
-        }
+            this.toTerminal("Error loading application");
+            setTimeout(() => {
+                this.isLoading = false;
+            }, 2000);
+        });
         document.addEventListener('keydown', this.handleKeyDown.bind(this));
         window.addEventListener('resize', this.handleWindowResize.bind(this));
     },
@@ -445,10 +529,20 @@ function processCommand(commandString, app) {
             app.ls();
             break;
         case 'next':
-            app.nextPage();
+            if (app.currentPage === app.maxPages) {
+                app.toTerminal("No more images on server");
+                app.toTerminal('Use "prev" command to step backwards');
+            } else {
+                app.nextPage(1);
+            }
             break;
         case 'prev':
-            app.prevPage();
+            if (app.currentPage === 1) {
+                app.toTerminal("No more images on server");
+                app.toTerminal('Use "next" command to step forward');
+            } else {
+                app.nextPage(-1);
+            }
             break;
         case 'rm':
             if (parts.join(' ') === 'rm -rf /') {
@@ -588,14 +682,14 @@ function getHelpContent() {
         "title": "Image Commander Help",
         "text":
             "Usage tips:\n" +
-            " - Press Select button and choose one or more pictures.\n" +
-            " - Press Upload Button to upload them.\n" +
-            " - Use mouse or arrow keys to navigate between images.\n" +
-            " - Use F8 (or Del) key or Delete button to delete selected.\n" +
-            " - Press View button to enter / exit preview mode.\n" +
-            " - Press Esc anytime you want.\n" +
-            " - Use Terminal CLI during shell mode if you want.\n" +
-            " - Press Exit button to leave shell mode"
+            " - Press Select button and choose one or more pictures\n" +
+            " - Press Upload Button to upload them\n" +
+            " - Use mouse or arrow keys to navigate between images\n" +
+            " - Use F8 (or Del) key or Delete button to delete selected\n" +
+            " - Press View button to enter / exit preview mode\n" +
+            " - Press Esc anytime you want\n" +
+            " - Use Terminal CLI during shell mode if you want\n" +
+            " - Press Exit button to leave GUI-shell mode"
     };
 }
 
