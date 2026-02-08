@@ -5,8 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Image Commander</title>
     <link rel="stylesheet" href="static/css/style.css">
+    <link rel="icon" type="image/png" href="static/img/icons/favicon-96x96.png" sizes="96x96"/>
+    <link rel="icon" type="image/svg+xml" href="static/img/icons/favicon.svg"/>
+    <link rel="shortcut icon" href="static/img/icons/favicon.ico"/>
+    <link rel="apple-touch-icon" sizes="180x180" href="static/img/icons/apple-touch-icon.png"/>
+    <link rel="manifest" href="static/img/icons/site.webmanifest"/>
 </head>
-<body class="main_bg" ondra="return false">
+<body class="main_bg">
 <div class="container" id="app">
     <input type="file"
            id="fileInput"
@@ -42,8 +47,7 @@
                 <div class="loader-messages" style="display: none" v-show="!isPreloading">
                     <div v-for="(msg, index) in loaderMessages"
                          :key="index"
-                         class="loader-message"
-                         :class="msg.type">
+                         class="loader-message">
                         {{ msg.text }}<span v-if="index === loaderMessages.length - 1" class="loader-cursor"></span>
                     </div>
                 </div>
@@ -102,7 +106,8 @@
                         </div>
                         <div class="viewer" v-show="viewMode">
                             <img v-if="activePanel==='right'" :src="viewLink" alt="No Preview Available">
-                            <img v-else-if="activePanel==='left'" :src="selectedFileIndex >= 0 ? getSelectedFileUrl() : ''" alt="No Preview Available">
+                            <img v-else-if="activePanel==='left'"
+                                 :src="selectedFileIndex >= 0 ? getSelectedFileUrl() : ''" alt="No Preview Available">
                             <p v-else>Click image to see preview</p>
                         </div>
                     </div>

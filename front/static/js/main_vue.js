@@ -80,7 +80,6 @@ createApp({
                 this.pageSize = 20;
             }
 
-            console.log(`Page size set to: ${this.pageSize}`);
         },
         btnHelp() {
             this.modalContent = getHelpContent();
@@ -330,7 +329,7 @@ createApp({
             }
 
             // Логирование для отладки
-            console.log(`Recalculated: page=${this.currentPage}, index=${this.uploadedFileIndex}, globalIndex=${globalIndex}`);
+
         },
         handleDragOver(e) {
             e.preventDefault();
