@@ -6,7 +6,7 @@
     <title>Image Commander</title>
     <link rel="stylesheet" href="static/css/style.css">
 </head>
-<body class="main_bg">
+<body class="main_bg" ondra="return false">
 <div class="container" id="app">
     <input type="file"
            id="fileInput"
@@ -78,8 +78,8 @@
                                 <tr>
                                     <td>Filename</td>
                                     <td>Ext</td>
-                                    <td>Size&nbsp;MB</td>
-                                    <td>OK</td>
+                                    <td class="right">Size&nbsp;MB</td>
+                                    <td class="center">OK</td>
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -93,8 +93,8 @@
                                     @click="selectFile(index, 'left')">
                                     <td>{{ file.shortName }}</td>
                                     <td>{{ file.ext }}</td>
-                                    <td style="text-align: right">{{ file.sizeMB }}</td>
-                                    <td style="text-align: center">{{ file.validation.ok ? '✓' : ''}}</td>
+                                    <td class="right">{{ file.sizeMB }}</td>
+                                    <td class="center">{{ file.validation.ok ? '✓' : ''}}</td>
                                 </tr>
                                 </tbody>
                             </table>
@@ -118,8 +118,8 @@
                                 <tr>
                                     <td>Filename</td>
                                     <td>Ext</td>
-                                    <td>Size&nbsp;MB</td>
-                                    <td>Link</td>
+                                    <td class="right">Size&nbsp;MB</td>
+                                    <td class="center">Link</td>
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -133,8 +133,8 @@
                                 >
                                     <td>{{ file.shortName }}</td>
                                     <td>{{ file.ext }}</td>
-                                    <td style="text-align: right">{{ file.sizeMB }}</td>
-                                    <td style="text-align: center"><a target="_blank" :href="file.link">[🡇]</a></td>
+                                    <td class="right">{{ file.sizeMB }}</td>
+                                    <td class="center"><a target="_blank" :href="file.link">[🡇]</a></td>
                                 </tr>
                                 </tbody>
                             </table>

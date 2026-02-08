@@ -21,6 +21,14 @@ body {
     margin: 0;
 }
 
+.right {
+    text-align: right;
+}
+
+.center {
+    text-align: center;
+}
+
 ul {
     list-style: none;
     padding: 0;
@@ -107,8 +115,14 @@ ul {
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-5px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .loader-cursor {
@@ -122,8 +136,12 @@ ul {
 }
 
 @keyframes blink {
-    0%, 50% { opacity: 1; }
-    51%, 100% { opacity: 0; }
+    0%, 50% {
+        opacity: 1;
+    }
+    51%, 100% {
+        opacity: 0;
+    }
 }
 
 .loader-progress {
@@ -288,7 +306,8 @@ ul {
 }
 
 .shell-panel table td {
-    padding: var(--padding_xs) var(--padding_main);
+    box-sizing: border-box;
+    padding: var(--padding_xs) var(--padding_small);
 }
 
 .invalid {
@@ -311,7 +330,7 @@ ul {
 .shell-panel table tbody tr:hover, .shell-panel table tbody tr:active {
     color: var(--terminal_bg);
     background-color: var(--terminal_color_dark);
-    cursor:pointer;
+    cursor: pointer;
 }
 
 .shell-panel table a {
@@ -479,7 +498,7 @@ ul {
 }
 
 .modal-close:hover {
-    color:var(--terminal_color_dark);
+    color: var(--terminal_color_dark);
 }
 
 .modal-content {

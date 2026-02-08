@@ -15,6 +15,7 @@ const {createApp} = Vue
 createApp({
     data() {
         return {
+            animationSpeed: getCookie('animationSpeed') || 1,
             footerText: '© iZelikov',
             username: 'root@ic:~#',
             headerText: headerStrings[0],
@@ -291,13 +292,16 @@ createApp({
             this.uploadedFileIndex = globalIndex % this.pageSize;
         },
         handleDragOver(e) {
+            e.preventDefault();
             this.isDragOver = true;
             e.dataTransfer.dropEffect = 'copy';
         },
-        handleDragLeave() {
+        handleDragLeave(e) {
+            e.preventDefault();
             this.isDragOver = false;
         },
         handleDrop(e) {
+            e.preventDefault();
             this.isDragOver = false;
             const files = e.dataTransfer.files;
             if (files.length > 0) {
@@ -313,18 +317,18 @@ createApp({
         async initLoaderAnimation() {
             // Массив шагов загрузки с сообщениями
             const steps = [
-                { message: `Starting Image Commander v${version}...`, type: 'system', delay: 100 },
-                { message: 'Initializing terminal interface...', type: 'system', delay: 150 },
-                { message: '✓ Terminal interface ready', type: 'success', delay: 100 },
-                { message: 'Loading file system driver...', type: 'system', delay: 150 },
-                { message: '✓ File system ready', type: 'success', delay: 100 },
-                { message: 'Connecting to image storage...', type: 'system', delay: 200 },
-                { message: '✓ Connection established', type: 'success', delay: 100 },
-                { message: 'Loading system configuration...', type: 'system', delay: 150 },
-                { message: '✓ Configuration loaded', type: 'success', delay: 100 },
-                { message: 'Initializing command processor...', type: 'system', delay: 150 },
-                { message: '✓ Command processor ready', type: 'success', delay: 100 },
-                { message: 'Booting complete!', type: 'info', delay: 200 },
+                {message: `Starting Image Commander v${version}...`, type: 'system', delay: 100 / this.animationSpeed},
+                {message: 'Initializing terminal interface...', type: 'system', delay: 150 / this.animationSpeed},
+                {message: '✓ Terminal interface ready', type: 'success', delay: 100 / this.animationSpeed},
+                {message: 'Loading file system driver...', type: 'system', delay: 150 / this.animationSpeed},
+                {message: '✓ File system ready', type: 'success', delay: 100 / this.animationSpeed},
+                {message: 'Connecting to image storage...', type: 'system', delay: 200 / this.animationSpeed},
+                {message: '✓ Connection established', type: 'success', delay: 100 / this.animationSpeed},
+                {message: 'Loading system configuration...', type: 'system', delay: 150 / this.animationSpeed},
+                {message: '✓ Configuration loaded', type: 'success', delay: 100 / this.animationSpeed},
+                {message: 'Initializing command processor...', type: 'system', delay: 150 / this.animationSpeed},
+                {message: '✓ Command processor ready', type: 'success', delay: 100 / this.animationSpeed},
+                {message: 'Booting complete!', type: 'info', delay: 200 / this.animationSpeed},
             ];
 
             // Добавляем сообщения по одному
@@ -346,10 +350,12 @@ createApp({
             }
 
             // Короткая пауза в конце
-            await this.sleep(300);
+            await this.sleep(300 / this.animationSpeed);
 
             // Завершаем загрузку
             this.isLoading = false;
+            // в следующий раз загрузимся в 5 раз быстрее
+            setCookie('animationSpeed', 5)
 
             // Устанавливаем фокус на поле ввода
             this.$nextTick(() => {
@@ -409,7 +415,7 @@ createApp({
             })
         },
         viewLink() {
-            if (this.uploadedFileIndex >= 0) {
+            if (this.uploadedFileIndex >= 0 && this.uploadedFilesInfo.length > 0) {
                 return this.uploadedFilesInfo[this.uploadedFileIndex].link;
             } else return '#';
         },
@@ -423,8 +429,8 @@ createApp({
         },
         uploadedFilesInfo(newVal) {
             if (newVal.length === 0 && this.currentPage > 1) {
+                this.uploadedFileIndex = this.pageSize - 1;
                 this.nextPage(-1);
-                this.uploadedFileIndex = this.pageSize -1;
             }
         }
     },
@@ -628,9 +634,7 @@ function uploadFiles(app) {
         .then(data => {
             app.toTerminal('Upload successful!');
             app.selectedFiles = [];
-            loadUploadedImages(app).then(() => {
-                console.log("Image list Updated")
-            });
+            loadUploadedImages(app).then();
         })
         .catch(error => {
             app.toTerminal(`Upload error: ${error.message}`);
@@ -641,7 +645,6 @@ async function loadUploadedImages(app) {
     app.isLoadingImages = true;
 
     try {
-        console.log('Loading images list from server...');
         const link = `${API_LINKS.get}?page=${app.currentPage}&size=${app.pageSize}`
         const response = await fetch(link);
 
@@ -663,8 +666,6 @@ async function loadUploadedImages(app) {
         } else {
             console.error('Invalid response format from server');
         }
-
-        console.log(`Loaded ${app.uploadedImages.length} image(s) from server`);
 
     } catch (error) {
         console.error(`Error loading images: ${error.message}`);
