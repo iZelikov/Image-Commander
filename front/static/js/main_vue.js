@@ -65,11 +65,22 @@ createApp({
         setMaxImagesPerPage() {
             const panel = document.getElementById('storage-panel');
             if (!panel || panel.clientHeight === 0) {
+                this.pageSize = 20;
                 return;
             }
+
             const height = panel.clientHeight;
             const calculatedSize = Math.floor(height / 39) - 2;
+
+            // Ограничиваем минимальный размер 5 и максимальный 50
             this.pageSize = Math.max(5, Math.min(calculatedSize, 50));
+
+            // Дополнительная защита от некорректных значений
+            if (this.pageSize <= 0 || isNaN(this.pageSize)) {
+                this.pageSize = 20;
+            }
+
+            console.log(`Page size set to: ${this.pageSize}`);
         },
         btnHelp() {
             this.modalContent = getHelpContent();
@@ -281,15 +292,45 @@ createApp({
             this.resizeTimeout = setTimeout(() => {
                 if (this.showShell) {
                     this.recalculatePagination();
-                    loadUploadedImages(this).then();
+                    // Загружаем изображения только если страница изменилась
+                    loadUploadedImages(this).then(() => {
+                        // После загрузки проверяем, что индекс валидный
+                        if (this.uploadedFileIndex >= this.uploadedFilesInfo.length) {
+                            this.uploadedFileIndex = this.uploadedFilesInfo.length > 0 ? this.uploadedFilesInfo.length - 1 : -1;
+                        }
+                    });
                 }
             }, 500);
         },
         recalculatePagination() {
-            let globalIndex = ((this.currentPage - 1) * this.pageSize) + this.uploadedFileIndex;
+            // Сохраняем текущий глобальный индекс выделенного файла
+            let globalIndex = -1;
+            if (this.uploadedFileIndex >= 0) {
+                globalIndex = ((this.currentPage - 1) * this.pageSize) + this.uploadedFileIndex;
+            }
+
+            // Пересчитываем размер страницы
             this.setMaxImagesPerPage();
-            this.currentPage = Math.ceil(globalIndex / this.pageSize);
-            this.uploadedFileIndex = globalIndex % this.pageSize;
+
+            // Если был выделенный файл, вычисляем новую страницу и локальный индекс
+            if (globalIndex >= 0 && globalIndex < this.totalImages) {
+                // Вычисляем новую страницу
+                const newPage = Math.floor(globalIndex / this.pageSize) + 1;
+
+                // Если страница изменилась, обновляем текущую страницу
+                if (newPage !== this.currentPage) {
+                    this.currentPage = newPage;
+                }
+
+                // Вычисляем новый локальный индекс
+                this.uploadedFileIndex = globalIndex % this.pageSize;
+            } else if (globalIndex >= this.totalImages) {
+                // Если глобальный индекс больше общего количества файлов, сбрасываем выделение
+                this.uploadedFileIndex = -1;
+            }
+
+            // Логирование для отладки
+            console.log(`Recalculated: page=${this.currentPage}, index=${this.uploadedFileIndex}, globalIndex=${globalIndex}`);
         },
         handleDragOver(e) {
             e.preventDefault();
@@ -415,10 +456,13 @@ createApp({
             })
         },
         viewLink() {
-            if (this.uploadedFileIndex >= 0 && this.uploadedFilesInfo.length > 0) {
+            if (this.uploadedFileIndex >= 0 &&
+                this.uploadedFileIndex < this.uploadedFilesInfo.length &&
+                this.uploadedFilesInfo[this.uploadedFileIndex]) {
                 return this.uploadedFilesInfo[this.uploadedFileIndex].link;
-            } else return '#';
-        },
+            }
+            return '#';
+        }
     },
     watch: {
         showShell(newVal) {
@@ -432,7 +476,7 @@ createApp({
                 this.uploadedFileIndex = this.pageSize - 1;
                 this.nextPage(-1);
             }
-        }
+        },
     },
     mounted() {
         this.isPreloading = false;
@@ -644,8 +688,12 @@ function uploadFiles(app) {
 async function loadUploadedImages(app) {
     app.isLoadingImages = true;
 
+    // Защита от некорректных значений page и size
+    const page = Math.max(1, app.currentPage); // Не меньше 1
+    const size = Math.max(1, app.pageSize); // Не меньше 1
+
     try {
-        const link = `${API_LINKS.get}?page=${app.currentPage}&size=${app.pageSize}`
+        const link = `${API_LINKS.get}?page=${page}&size=${size}`
         const response = await fetch(link);
 
         if (!response.ok) {
