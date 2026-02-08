@@ -24,7 +24,8 @@ HOST, PORT = ('0.0.0.0', 8000)
 DEBUG = True
 BASE_DIR = PATH = Path(__file__).parent.parent
 IMAGE_DIR = BASE_DIR / "images"
-BACKUP_DIR = BASE_DIR / "backup"
+BACKUP_DIR = BASE_DIR / "backups"
+LOG_DIR = BASE_DIR / "logs"
 
 # Таймауты для загрузки файлов
 UPLOAD_TIMEOUT_SECONDS = 300  # 5 минут

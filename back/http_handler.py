@@ -1,3 +1,4 @@
+# http_handler.py
 import http.server
 import json
 import logging
@@ -7,6 +8,7 @@ from db import get_images_metadata, save_metadata, delete_metadata, get_images_c
 from multipart_parser import MultipartParser, validate_image_file, save_uploaded_file
 
 logger = logging.getLogger(__name__)
+
 
 class ImageRequestHandler(http.server.BaseHTTPRequestHandler):
 
@@ -19,17 +21,21 @@ class ImageRequestHandler(http.server.BaseHTTPRequestHandler):
         self.end_headers()
 
     def do_OPTIONS(self):
+        logger.debug(f"OPTIONS request for {self.path}")
         self._set_headers(200)
 
     def do_GET(self):
         parsed_path = urllib.parse.urlparse(self.path)
         path = parsed_path.path
+        logger.info(f"GET request for {path}")
 
         if path.startswith('/get_images'):
             try:
                 query_params = urllib.parse.parse_qs(parsed_path.query)
                 page = int(query_params.get('page', [1])[0])
                 page_size = int(query_params.get('size', [10])[0])
+                logger.debug(f"Getting images - page: {page}, page_size: {page_size}")
+
                 images = get_images_metadata(page=page, page_size=page_size)
                 images_count = get_images_count()
                 files = []
@@ -43,32 +49,39 @@ class ImageRequestHandler(http.server.BaseHTTPRequestHandler):
                         'file_type': img[5]
                     })
                 result = {'files': files, 'total': images_count}
+                logger.info(f"Returning {len(files)} images (total: {images_count})")
                 self._set_headers(200)
                 self.wfile.write(json.dumps(result).encode())
 
             except Exception as e:
+                logger.error(f"Error processing GET /get_images: {e}", exc_info=True)
                 self._set_headers(500)
                 error_msg = {'error': str(e)}
                 self.wfile.write(json.dumps(error_msg).encode())
 
         elif path == '/health/' or path == '/health':
+            logger.debug("Health check requested")
             self._set_headers(200)
             response = {'status': 'ok', 'service': 'image-commander'}
             self.wfile.write(json.dumps(response).encode())
 
         else:
+            logger.warning(f"GET request for unknown path: {path}")
             self._set_headers(404)
             self.wfile.write(json.dumps({'error': 'Not found'}).encode())
 
     def do_POST(self):
         parsed_path = urllib.parse.urlparse(self.path)
         path = parsed_path.path
+        logger.info(f"POST request for {path}")
 
         if path.startswith('/upload'):
             try:
                 content_length = int(self.headers.get('Content-Length', 0))
+                logger.debug(f"Upload request content length: {content_length} bytes")
 
                 if content_length == 0:
+                    logger.warning("Upload request with no data")
                     self._set_headers(400)
                     self.wfile.write(json.dumps({'error': 'No data provided'}).encode())
                     return
@@ -80,6 +93,7 @@ class ImageRequestHandler(http.server.BaseHTTPRequestHandler):
                 )
 
                 fields, files = parser.parse()
+                logger.debug(f"Parsed upload: {len(fields)} fields, {sum(len(f) for f in files.values())} files")
 
                 uploaded_files = []
                 errors = []
@@ -88,6 +102,7 @@ class ImageRequestHandler(http.server.BaseHTTPRequestHandler):
                     for file_info in files[file_key]:
                         filename = file_info['filename']
                         file_data = file_info['data']
+                        logger.debug(f"Processing file: {filename}, size: {len(file_data)} bytes")
 
                         validation = validate_image_file(file_data, filename)
 
@@ -107,11 +122,16 @@ class ImageRequestHandler(http.server.BaseHTTPRequestHandler):
                                     'size': validation['size'],
                                     'url': f'/images/{new_filename}'
                                 })
+                                logger.info(f"Successfully uploaded file: {filename} -> {new_filename}")
 
                             except Exception as e:
-                                errors.append(f"Error saving {filename}: {str(e)}")
+                                error_msg = f"Error saving {filename}: {str(e)}"
+                                logger.error(error_msg, exc_info=True)
+                                errors.append(error_msg)
                         else:
-                            errors.append(f"File {filename}: {', '.join(validation['errors'])}")
+                            error_msg = f"File {filename}: {', '.join(validation['errors'])}"
+                            logger.warning(error_msg)
+                            errors.append(error_msg)
 
                 if uploaded_files:
                     response = {
@@ -120,6 +140,7 @@ class ImageRequestHandler(http.server.BaseHTTPRequestHandler):
                         'uploaded': uploaded_files,
                         'errors': errors if errors else None
                     }
+                    logger.info(f"Upload completed successfully: {len(uploaded_files)} files uploaded")
                     self._set_headers(200)
                 else:
                     response = {
@@ -127,28 +148,34 @@ class ImageRequestHandler(http.server.BaseHTTPRequestHandler):
                         'message': 'No files were uploaded',
                         'errors': errors
                     }
+                    logger.warning(f"Upload failed: {errors}")
                     self._set_headers(400)
 
                 self.wfile.write(json.dumps(response).encode())
 
             except Exception as e:
+                logger.error(f"Server error during upload: {e}", exc_info=True)
                 self._set_headers(500)
                 error_msg = {'error': f'Server error: {str(e)}'}
                 self.wfile.write(json.dumps(error_msg).encode())
 
         else:
+            logger.warning(f"POST request for unknown path: {path}")
             self._set_headers(404)
             self.wfile.write(json.dumps({'error': 'Not found'}).encode())
 
     def do_DELETE(self):
         parsed_path = urllib.parse.urlparse(self.path)
         path = parsed_path.path
+        logger.info(f"DELETE request for {path}")
 
         if path.startswith('/delete/'):
             try:
                 filename = path.split('/delete/')[-1]
+                logger.debug(f"Delete request for file: {filename}")
 
                 if not filename:
+                    logger.warning("Delete request without filename")
                     self._set_headers(400)
                     self.wfile.write(json.dumps({'error': 'Filename required'}).encode())
                     return
@@ -156,6 +183,9 @@ class ImageRequestHandler(http.server.BaseHTTPRequestHandler):
                 filepath = IMAGE_DIR / filename
                 if filepath.exists():
                     filepath.unlink()
+                    logger.info(f"Deleted file from disk: {filename}")
+                else:
+                    logger.warning(f"File not found on disk: {filename}")
 
                 delete_metadata(filename)
 
@@ -163,18 +193,21 @@ class ImageRequestHandler(http.server.BaseHTTPRequestHandler):
                     'success': True,
                     'message': f'File {filename} deleted successfully'
                 }
+                logger.info(f"Successfully deleted file: {filename}")
                 self._set_headers(200)
                 self.wfile.write(json.dumps(response).encode())
 
             except Exception as e:
+                logger.error(f"Error deleting file: {e}", exc_info=True)
                 self._set_headers(500)
                 error_msg = {'error': str(e)}
                 self.wfile.write(json.dumps(error_msg).encode())
 
         else:
+            logger.warning(f"DELETE request for unknown path: {path}")
             self._set_headers(404)
             self.wfile.write(json.dumps({'error': 'Not found'}).encode())
 
     def log_message(self, format, *args):
         if DEBUG:
-            super().log_message(format, *args)
+            logger.debug(f"HTTP: {format % args}")
