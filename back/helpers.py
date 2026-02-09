@@ -5,7 +5,8 @@ from typing import Dict
 
 from config import FILE_EXTENSIONS, MAX_FILE_SIZE_BYTES, IMAGE_DIR, PREVIEW_DIR, PREVIEW_SIZE, PREVIEW_QUALITY
 from multipart_parser import logger
-from PIL import Image
+from PIL import Image, ImageOps
+
 
 def validate_image_file(file_data: bytes, filename: str) -> Dict:
     """Валидация загружаемого изображения"""
@@ -136,6 +137,10 @@ def create_preview(image_path: Path, filename: str, size=300, quality=60):
             # Создаем превью (максимальный размер 300x300, сохраняя пропорции)
             img.thumbnail((size, size))
 
+            # Конвертируем в зелёный цвет (для имитации зелёного терминала)
+            # Кринжовенько....
+            # img = convert_to_green_scale(img)
+
             # Сохраняем превью с тем же именем (всегда в формате JPEG для экономии места)
             preview_filename = Path(filename).stem + '.jpg'
             preview_path = preview_dir / preview_filename
@@ -147,3 +152,19 @@ def create_preview(image_path: Path, filename: str, size=300, quality=60):
 
     except Exception as e:
         logger.error(f"Failed to create preview for {filename}: {e}", exc_info=True)
+
+
+def convert_to_green_scale(image):
+    """Делаем пикселявое зелёное изображение (и получается фигня)"""
+    # Преобразуем в оттенки серого
+    grayscale = image.convert('L')
+
+    # Создаем нулевые каналы для красного и синего
+    zero_channel = Image.new('L', grayscale.size, 0)
+
+    # Объединяем каналы: R=0, G=grayscale, B=0
+    img = Image.merge('RGB', (zero_channel, grayscale, zero_channel))
+    posterized_img = ImageOps.posterize(img, 3)
+    # pixelated_img = posterized_img.resize((64, 64), Image.Resampling.BICUBIC)
+    # posterized_img = pixelated_img.resize(img.size, Image.Resampling.BOX)
+    return posterized_img

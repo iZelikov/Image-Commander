@@ -107,7 +107,7 @@
                         <div class="viewer" v-show="viewMode">
                             <img v-if="activePanel==='right'" :src="currentView.preview" alt="No Preview Available">
                             <img v-else-if="activePanel==='left'"
-                                 :src="currentView.link" alt="No Preview Available">
+                                 :src="currentView.preview" alt="No Preview Available">
                             <p v-else>Click image to see preview</p>
                             <div class="preview-info">{{ currentView.name }}</div>
                         </div>
