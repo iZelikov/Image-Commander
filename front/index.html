@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Image Commander</title>
-    <link rel="stylesheet" href="static/css/style.css?v=20260209030233">
+    <link rel="stylesheet" href="static/css/style.css?v=20260209034550">
     <link rel="icon" type="image/png" href="static/img/icons/favicon-96x96.png" sizes="96x96"/>
     <link rel="icon" type="image/svg+xml" href="static/img/icons/favicon.svg"/>
     <link rel="shortcut icon" href="static/img/icons/favicon.ico"/>
@@ -105,7 +105,7 @@
                             <p class="empty-message" v-else>drop your files here...<br> or click "Select" button</p>
                         </div>
                         <div class="viewer" v-show="viewMode">
-                            <img v-if="activePanel==='right'" :src="currentView.link" alt="No Preview Available">
+                            <img v-if="activePanel==='right'" :src="currentView.preview" alt="No Preview Available">
                             <img v-else-if="activePanel==='left'"
                                  :src="currentView.link" alt="No Preview Available">
                             <p v-else>Click image to see preview</p>
@@ -187,8 +187,7 @@
     </div>
 </div>
 
-<!--<script src="https://unpkg.com/vue@3/dist/vue.global.js?v=20260209030233"></script>-->
-<script src="static/js/vue.global.js?v=20260209030233"></script>
-<script src="static/js/main_vue.js?v=20260209030233"></script>
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script src="static/js/main_vue.js?"></script>
 </body>
 </html>

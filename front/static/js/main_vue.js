@@ -49,7 +49,7 @@ createApp({
     methods: {
         toTerminal(text) {
             this.terminalText += text + `\n`;
-            scrollTerminal(this);
+            scrollTerminal();
         },
         focusInput() {
             // Устанавливаем фокус на поле ввода
@@ -154,7 +154,7 @@ createApp({
             if (fileArray.length === 0) return;
             this.selectedFiles = fileArray;
             this.toTerminal('You have selected files:')
-            this.selectedFilesInfo.forEach((file, index) => {
+            this.selectedFilesInfo.forEach(file => {
                 this.toTerminal(`${intend}${file.validation.ok ? '✓' : 'x'} ${file.fullName} (${file.sizeMB} MB) ${file.validation.message}`)
             });
             this.toTerminal('Type "upload" to upload valid images or "select" to select another files')
@@ -441,7 +441,8 @@ createApp({
                 const extension = splitName.pop().toLowerCase();
                 const name = splitName.join('');
                 const shortName = name.length > MAX_NAME_LENGTH ? `${name.slice(0, MAX_NAME_LENGTH - 2)}~1` : name;
-                const link = API_LINKS.images_path + file.filename;
+                const link = file['link'];
+                const preview = file['preview'];
                 return {
                     name: name,
                     shortName: shortName,
@@ -449,25 +450,25 @@ createApp({
                     original_name: file['original_filename'],
                     ext: extension,
                     link: link,
+                    preview: preview,
                     sizeMB: (file.size / (1024 * 1024)).toFixed(3),
-
                 }
             })
         },
         currentView() {
-            let result = {"link": "#", "name": ""};
+            let result = {'link': '#', 'name': '', 'preview':'#'};
             if (this.activePanel === 'right') {
                 if (this.uploadedFileIndex >= 0 &&
                     this.uploadedFileIndex < this.uploadedFilesInfo.length &&
                     this.uploadedFilesInfo[this.uploadedFileIndex]) {
                     const view = this.uploadedFilesInfo[this.uploadedFileIndex];
-                    result = {"link": view.link, "name": view.original_name};
+                    result = {'link': view.link, 'name': view.original_name, 'preview': view.preview};
                 }
             } else if (this.activePanel === 'left') {
                 if(this.selectedFileIndex >=0){
                     const link = this.getSelectedFileUrl();
                     const name = this.selectedFilesInfo[this.selectedFileIndex].fullName;
-                    result = {"link": link, "name": name};
+                    result = {'link': link, 'name': name, 'preview': link};
                 }
             }
             return result;
@@ -613,7 +614,7 @@ function processCommand(commandString, app) {
     }
 }
 
-function scrollTerminal(app) {
+function scrollTerminal() {
     const terminalContent = document.querySelector('.terminal-content');
     if (terminalContent) {
         setTimeout(() => {
@@ -684,7 +685,7 @@ function uploadFiles(app) {
             }
             throw new Error('Upload failed');
         })
-        .then(data => {
+        .then(()=> {
             app.toTerminal('Upload successful!');
             app.selectedFiles = [];
             loadUploadedImages(app).then();

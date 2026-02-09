@@ -50,7 +50,7 @@ class ImageRequestHandler(http.server.BaseHTTPRequestHandler):
                         'upload_time': img[4].isoformat() if img[4] else None,
                         'file_type': img[5],
                         'link': f'{IMAGE_DIR}/{img[1]}',
-                        'preview': f'{PREVIEW_DIR}/{img[1]}'
+                        'preview': f'{PREVIEW_DIR}/{Path(img[1]).stem}.jpg'
                     })
                 result = {'files': files, 'total': images_count}
                 logger.info(f"Returning {len(files)} images (total: {images_count})")
