@@ -454,13 +454,23 @@ createApp({
                 }
             })
         },
-        viewLink() {
-            if (this.uploadedFileIndex >= 0 &&
-                this.uploadedFileIndex < this.uploadedFilesInfo.length &&
-                this.uploadedFilesInfo[this.uploadedFileIndex]) {
-                return this.uploadedFilesInfo[this.uploadedFileIndex].link;
+        currentView() {
+            let result = {"link": "#", "name": ""};
+            if (this.activePanel === 'right') {
+                if (this.uploadedFileIndex >= 0 &&
+                    this.uploadedFileIndex < this.uploadedFilesInfo.length &&
+                    this.uploadedFilesInfo[this.uploadedFileIndex]) {
+                    const view = this.uploadedFilesInfo[this.uploadedFileIndex];
+                    result = {"link": view.link, "name": view.original_name};
+                }
+            } else if (this.activePanel === 'left') {
+                if(this.selectedFileIndex >=0){
+                    const link = this.getSelectedFileUrl();
+                    const name = this.selectedFilesInfo[this.selectedFileIndex].fullName;
+                    result = {"link": link, "name": name};
+                }
             }
-            return '#';
+            return result;
         }
     },
     watch: {

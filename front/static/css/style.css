@@ -3,6 +3,8 @@
     --terminal_color: #008800;
     --terminal_color_dark: #004400;
     --terminal_bg: #000000;
+    --terminal_bg_50: rgba(0, 0, 0, 0.5);
+    --terminal_bg_75: rgba(0, 0, 0, 0.75);
     --terminal_font: courier, monospace;
     --terminal_font_size: 20px;
     --terminal_font_size_mobile: 16px;
@@ -260,6 +262,7 @@ ul {
 }
 
 .viewer {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -272,6 +275,17 @@ ul {
 .viewer img {
     max-width: 100%;
     max-height: 100%;
+}
+
+.preview-info {
+    position: absolute;
+    bottom: 0;
+    box-sizing: border-box;
+    width: 100%;
+    background-color: var(--terminal_bg_75);
+    color: var(--terminal_color);
+    overflow: hidden;
+    padding: var(--padding_small) var(--padding_main);
 }
 
 .disabled {
