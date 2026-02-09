@@ -1,11 +1,13 @@
-# http_handler.py
 import http.server
 import json
 import logging
 import urllib.parse
-from config import DEBUG, IMAGE_DIR
+from pathlib import Path
+
+from config import DEBUG, IMAGE_DIR, PREVIEW_DIR
 from db import get_images_metadata, save_metadata, delete_metadata, get_images_count
-from multipart_parser import MultipartParser, validate_image_file, save_uploaded_file
+from multipart_parser import MultipartParser
+from helpers import validate_image_file, save_uploaded_file
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +48,9 @@ class ImageRequestHandler(http.server.BaseHTTPRequestHandler):
                         'original_filename': img[2],
                         'size': img[3],
                         'upload_time': img[4].isoformat() if img[4] else None,
-                        'file_type': img[5]
+                        'file_type': img[5],
+                        'link': f'{IMAGE_DIR}/{img[1]}',
+                        'preview': f'{PREVIEW_DIR}/{img[1]}'
                     })
                 result = {'files': files, 'total': images_count}
                 logger.info(f"Returning {len(files)} images (total: {images_count})")
@@ -180,6 +184,7 @@ class ImageRequestHandler(http.server.BaseHTTPRequestHandler):
                     self.wfile.write(json.dumps({'error': 'Filename required'}).encode())
                     return
 
+                # Удаляем оригинальный файл
                 filepath = IMAGE_DIR / filename
                 if filepath.exists():
                     filepath.unlink()
@@ -187,6 +192,13 @@ class ImageRequestHandler(http.server.BaseHTTPRequestHandler):
                 else:
                     logger.warning(f"File not found on disk: {filename}")
 
+                # Удаляем превью (если существует)
+                preview_path = PREVIEW_DIR / (Path(filename).stem + '.jpg')
+                if preview_path.exists():
+                    preview_path.unlink()
+                    logger.info(f"Deleted preview from disk: {preview_path.name}")
+
+                # Удаляем метаданные из БД
                 delete_metadata(filename)
 
                 response = {
