@@ -255,14 +255,17 @@ createApp({
                         this.changeFile(+1);
                         break;
                     case 'ArrowRight':
-                        e.preventDefault();
-                        this.nextPage(1);
+                        if (this.activePanel === 'right') {
+                            e.preventDefault();
+                            this.nextPage(+1);
+                        }
                         break;
                     case 'ArrowLeft':
-                        e.preventDefault();
-                        this.nextPage(-1);
+                        if (this.activePanel === 'right') {
+                            e.preventDefault();
+                            this.nextPage(-1);
+                        }
                         break;
-
                     case 'Tab':
                         e.preventDefault();
                         const tabs = {"left": "right", "right": "left"}
