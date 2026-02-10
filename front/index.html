@@ -18,7 +18,7 @@
            accept="image/*"
            multiple
            style="display: none;"
-           @change="handleFiles">
+           @change="handleSelectedFiles">
     <div class="modal-overlay" style="display: none" v-show="showModal" @click.self="showModal=false">
         <div class="modal-window">
             <div class="modal-header">
@@ -61,6 +61,9 @@
             </div>
         </div>
     </div>
+    <div class="uploading_indicator" style="display:none" v-show="isUploadProcess">
+        UPLOADING...
+    </div>
     <div class="terminal" style="display:none" v-show="!isLoading">
         <header class="title-bar">{{ headerText }}</header>
         <main>
@@ -102,7 +105,7 @@
                                 </tr>
                                 </tbody>
                             </table>
-                            <p class="empty-message" v-else>drop your files here...<br> or click "Select" button</p>
+                            <p class="empty-message" v-else>Drop your files here...<br> Or click "Select" button</p>
                         </div>
                         <div class="viewer" v-show="viewMode">
                             <img v-if="activePanel==='right'" :src="currentView.preview" alt="No Preview Available">
@@ -162,8 +165,12 @@
                         <li @click="btnHelp">F1 Help</li>
                         <li @click="btnSelect">F2 Select</li>
                         <li @click="btnView">F3 View</li>
-                        <li @click="btnUpload">F4 Upload</li>
-                        <li @click="deleteSelectedFile">F8 Delete</li>
+                        <li @click="btnUpload"
+                            :class="{disabled: disableUpload}">F4 Upload
+                        </li>
+                        <li @click="deleteSelectedFile"
+                            :class="{disabled: disableDelete}">F8 Delete
+                        </li>
                         <li @click="btnExit">F10 Exit</li>
                     </ul>
                 </div>

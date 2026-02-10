@@ -10,6 +10,7 @@ const headerStrings = [
     'Image Commander: uploading shell'];
 const welcomeText = 'Welcome to Image Commander\nType "help" for help';
 const intend = '  ';
+const maxRequestSizeMB = 50;
 
 const {createApp} = Vue
 createApp({
@@ -36,6 +37,7 @@ createApp({
             pageSize: 20,
             totalImages: 0,
             isLoadingImages: false,
+            isUploadProcess: false,
             isDragOver: false,
             isPreloading: true,
             isLoading: true,
@@ -70,7 +72,7 @@ createApp({
             }
 
             const height = panel.clientHeight;
-            const calculatedSize = Math.floor(height / 39) - 2;
+            const calculatedSize = Math.floor(height / 34) - 2;
 
             // Ограничиваем минимальный размер 5 и максимальный 50
             this.pageSize = Math.max(5, Math.min(calculatedSize, 50));
@@ -145,19 +147,29 @@ createApp({
                 });
             }
         },
-        handleFiles(event) {
+        handleSelectedFiles(event) {
             const files = event.target.files;
             const fileArray = Array.from(files);
-            this.addFiles(fileArray);
+            this.addSelectedFiles(fileArray);
         },
-        addFiles(fileArray) {
+        addSelectedFiles(fileArray) {
             if (fileArray.length === 0) return;
             this.selectedFiles = fileArray;
-            this.toTerminal('You have selected files:')
+            this.toTerminal('You have selected files:');
             this.selectedFilesInfo.forEach(file => {
-                this.toTerminal(`${intend}${file.validation.ok ? '✓' : 'x'} ${file.fullName} (${file.sizeMB} MB) ${file.validation.message}`)
+                this.toTerminal(`${intend}${file.validation.ok ? '✓' : 'x'} ${file.fullName} (${file.sizeMB} MB) ${file.validation.message}`);
             });
-            this.toTerminal('Type "upload" to upload valid images or "select" to select another files')
+            this.toTerminal(`Total selected ${this.selectedFilesSize}MB of valid images`);
+            if (this.selectedFilesSize > maxRequestSizeMB) {
+                this.toTerminal(`Upload blocked! Max - ${maxRequestSizeMB}MB`);
+                this.toTerminal('Select files again');
+            } else {
+                this.toTerminal('Type "upload" to upload valid images or "select" to select another files');
+            }
+        },
+        clearSelectedFiles() {
+            this.selectedFileIndex = -1;
+            this.selectedFiles = [];
         },
         selectFile(index, panel) {
             switch (panel) {
@@ -175,6 +187,9 @@ createApp({
             }
         },
         deleteSelectedFile() {
+            if (this.disableDelete) {
+                return;
+            }
             if (this.activePanel === 'left') {
                 this.selectedFiles.splice(this.selectedFileIndex, 1);
                 if (this.selectedFiles.length === 0) {
@@ -239,6 +254,15 @@ createApp({
                         e.preventDefault();
                         this.changeFile(+1);
                         break;
+                    case 'ArrowRight':
+                        e.preventDefault();
+                        this.nextPage(1);
+                        break;
+                    case 'ArrowLeft':
+                        e.preventDefault();
+                        this.nextPage(-1);
+                        break;
+
                     case 'Tab':
                         e.preventDefault();
                         const tabs = {"left": "right", "right": "left"}
@@ -345,7 +369,7 @@ createApp({
             this.isDragOver = false;
             const files = e.dataTransfer.files;
             if (files.length > 0) {
-                this.addFiles(Array.from(files));
+                this.addSelectedFiles(Array.from(files));
             }
         },
         getSelectedFileUrl() {
@@ -431,6 +455,13 @@ createApp({
                 }
             })
         },
+        selectedFilesSize() {
+            let totalSize = 0;
+            this.selectedFilesInfo.forEach(file => {
+                if (file.validation.ok) totalSize += parseFloat(file.sizeMB);
+            });
+            return totalSize.toFixed(3);
+        },
         uploadedFilesInfo() {
             if (!Array.isArray(this.uploadedImages)) {
                 return [];
@@ -456,7 +487,7 @@ createApp({
             })
         },
         currentView() {
-            let result = {'link': '#', 'name': '', 'preview':'#'};
+            let result = {'link': '#', 'name': '', 'preview': '#'};
             if (this.activePanel === 'right') {
                 if (this.uploadedFileIndex >= 0 &&
                     this.uploadedFileIndex < this.uploadedFilesInfo.length &&
@@ -465,14 +496,24 @@ createApp({
                     result = {'link': view.link, 'name': view.original_name, 'preview': view.preview};
                 }
             } else if (this.activePanel === 'left') {
-                if(this.selectedFileIndex >=0){
+                if (this.selectedFileIndex >= 0) {
                     const link = this.getSelectedFileUrl();
                     const name = this.selectedFilesInfo[this.selectedFileIndex].fullName;
                     result = {'link': link, 'name': name, 'preview': link};
                 }
             }
             return result;
-        }
+        },
+        disableUpload() {
+            return this.isUploadProcess ||
+                this.selectedFiles.length === 0 ||
+                this.selectedFilesSize > maxRequestSizeMB;
+        },
+        disableDelete() {
+            const leftDel = this.activePanel === 'left' && this.selectedFileIndex >= 0;
+            const rightDel = this.activePanel === 'right' && this.uploadedFileIndex >= 0;
+            return !leftDel && !rightDel || this.isUploadProcess;
+        },
     },
     watch: {
         showShell(newVal) {
@@ -649,11 +690,17 @@ function validateFile(file) {
     return {ok: true, message: ''};
 }
 
-
 function uploadFiles(app) {
+
 
     if (app.selectedFilesInfo.length === 0) {
         app.toTerminal('No files to upload. Use "select" command first.');
+        return;
+    }
+
+    if (app.selectedFilesSize > maxRequestSizeMB) {
+        app.toTerminal(`Upload blocked! Maximum - ${maxRequestSizeMB}MB`);
+        app.toTerminal('Select files again');
         return;
     }
 
@@ -670,11 +717,11 @@ function uploadFiles(app) {
 
     if (!flag) {
         app.toTerminal('No files uploaded');
-        app.selectedFiles = [];
+        app.clearSelectedFiles();
         return;
     }
 
-
+    app.isUploadProcess = true;
     fetch(API_LINKS.upload, {
         method: 'POST',
         body: formData
@@ -685,14 +732,17 @@ function uploadFiles(app) {
             }
             throw new Error('Upload failed');
         })
-        .then(()=> {
+        .then(() => {
+            app.isUploadProcess = false;
             app.toTerminal('Upload successful!');
-            app.selectedFiles = [];
+            app.clearSelectedFiles();
             loadUploadedImages(app).then();
         })
         .catch(error => {
             app.toTerminal(`Upload error: ${error.message}`);
-        });
+        }).finally(() => {
+        app.isUploadProcess = false;
+    });
 }
 
 async function loadUploadedImages(app) {
@@ -748,7 +798,6 @@ function getHelpContent() {
             " - Press Exit button to leave GUI-shell mode"
     };
 }
-
 
 function setCookie(name, value, days = 7) {
     let expires = "";

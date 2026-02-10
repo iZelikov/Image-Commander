@@ -7,6 +7,7 @@
     --terminal_bg_75: rgba(0, 0, 0, 0.75);
     --terminal_font: courier, monospace;
     --terminal_font_size: 20px;
+    --terminal_line_height: 1.5em;
     --terminal_font_size_mobile: 16px;
     --terminal_font_weight: bold;
     --desktop_width: 1024px;
@@ -21,6 +22,7 @@ body {
     height: 100vh;
     padding: 0;
     margin: 0;
+    line-height: var(--terminal_line_height);
 }
 
 .right {
@@ -45,6 +47,7 @@ ul {
 }
 
 .container {
+    position: relative;
     box-sizing: border-box;
     width: 100%;
     height: 100%;
@@ -170,6 +173,21 @@ ul {
     background-color: var(--terminal_color);
     width: 0;
     transition: width 0.3s ease;
+}
+
+.uploading_indicator {
+    position: absolute;
+    z-index: 1000;
+    left: 0;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    margin: auto var(--padding_main);
+    padding: var(--padding_main);
+    border: 3px double var(--terminal_color);
+    color: var(--terminal_color);
+    background-color: var(--terminal_bg);
+    text-align: center;
 }
 
 .terminal {
@@ -321,6 +339,7 @@ ul {
 
 .shell-panel table td {
     box-sizing: border-box;
+    line-height: unset;
     padding: var(--padding_xs) var(--padding_small);
 }
 
@@ -410,7 +429,7 @@ ul {
     background-color: var(--terminal_color);
     color: var(--terminal_bg);
     text-align: center;
-    padding: 0 var(--padding_small);
+    padding: var(--padding_xs) var(--padding_small);
     cursor: pointer;
 }
 
@@ -422,6 +441,13 @@ ul {
 
 .menu li:active {
     background-color: var(--terminal_color_dark);
+}
+
+.menu li.disabled {
+    color: var(--terminal_color_dark);
+    background-color: var(--terminal_bg);
+    outline: 1px solid var(--terminal_color_dark);
+    cursor: default;
 }
 
 .command-line {
