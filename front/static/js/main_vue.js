@@ -70,13 +70,13 @@ createApp({
                 this.pageSize = 20;
                 return;
             }
-            const item = document.querySelector('#storage-panel tr')
+            const table_row = document.querySelector('#storage-panel tr')
 
-            const height = panel.clientHeight;
-            const item_height = (!item)? 34: item.clientHeight;
-
-            console.log(item, item_height);
-            const calculatedSize = Math.floor(height / item_height) - 2;
+            // первые две строки таблицы включают толщину границы заголовка 1px
+            const height = panel.clientHeight - 5; // минус толщина границы и пара пикселей в запас
+            const row_height = (!table_row)? 34: table_row.clientHeight - 1; // row - первая строка выше на 1 пиксель
+            // получаем число изображений на страницу для пагинации
+            const calculatedSize = Math.floor((height) / row_height) - 2; // пропускаем две строки заголовков
 
             // Ограничиваем минимальный размер 5 и максимальный 50
             this.pageSize = Math.max(5, Math.min(calculatedSize, 50));
