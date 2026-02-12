@@ -1,4 +1,4 @@
-const version = '0.0.5';
+const version = '0.1.1';
 const API_LINKS = {
     "get": "/api/get_images/",
     "upload": "/api/upload/",
@@ -70,9 +70,13 @@ createApp({
                 this.pageSize = 20;
                 return;
             }
+            const item = document.querySelector('#storage-panel tr')
 
             const height = panel.clientHeight;
-            const calculatedSize = Math.floor(height / 34) - 2;
+            const item_height = (!item)? 34: item.clientHeight;
+
+            console.log(item, item_height);
+            const calculatedSize = Math.floor(height / item_height) - 2;
 
             // Ограничиваем минимальный размер 5 и максимальный 50
             this.pageSize = Math.max(5, Math.min(calculatedSize, 50));

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Image Commander</title>
-    <link rel="stylesheet" href="static/css/style.css?v=20260210185824">
+    <link rel="stylesheet" href="static/css/style.css?v=20260212160214">
     <link rel="icon" type="image/png" href="static/img/icons/favicon-96x96.png" sizes="96x96"/>
     <link rel="icon" type="image/svg+xml" href="static/img/icons/favicon.svg"/>
     <link rel="shortcut icon" href="static/img/icons/favicon.ico"/>
@@ -84,8 +84,8 @@
                                 <thead>
                                 <tr>
                                     <td>Filename</td>
-                                    <td>Ext</td>
-                                    <td class="right">Size&nbsp;MB</td>
+                                    <td class="no-mobile">Ext</td>
+                                    <td class="right no-mobile">Size&nbsp;MB</td>
                                     <td class="center">OK</td>
                                 </tr>
                                 </thead>
@@ -99,8 +99,8 @@
                                     :data-selected="index === selectedFileIndex && activePanel === 'left'"
                                     @click="selectFile(index, 'left')">
                                     <td>{{ file.shortName }}</td>
-                                    <td>{{ file.ext }}</td>
-                                    <td class="right">{{ file.sizeMB }}</td>
+                                    <td class="no-mobile">{{ file.ext }}</td>
+                                    <td class="right no-mobile">{{ file.sizeMB }}</td>
                                     <td class="center">{{ file.validation.ok ? '✓' : ''}}</td>
                                 </tr>
                                 </tbody>
@@ -126,8 +126,8 @@
                                 <thead>
                                 <tr>
                                     <td>Filename</td>
-                                    <td>Ext</td>
-                                    <td class="right">Size&nbsp;MB</td>
+                                    <td class="no-mobile">Ext</td>
+                                    <td class="right no-mobile">Size&nbsp;MB</td>
                                     <td class="center">Link</td>
                                 </tr>
                                 </thead>
@@ -139,8 +139,8 @@
                                     @click="selectFile(index, 'right')"
                                 >
                                     <td>{{ file.shortName }}</td>
-                                    <td>{{ file.ext }}</td>
-                                    <td class="right">{{ file.sizeMB }}</td>
+                                    <td class="no-mobile">{{ file.ext }}</td>
+                                    <td class="right no-mobile">{{ file.sizeMB }}</td>
                                     <td class="center"><a target="_blank" :href="file.link">[🡇]</a></td>
                                 </tr>
                                 </tbody>
@@ -194,7 +194,7 @@
     </div>
 </div>
 
-<script src="https://unpkg.com/vue@3/dist/vue.global.js?v=20260210185824"></script>
-<script src="static/js/main_vue.js?v=20260210185824"></script>
+<script src="https://unpkg.com/vue@3/dist/vue.global.js?v=20260212160214"></script>
+<script src="static/js/main_vue.js?v=20260212160214"></script>
 </body>
 </html>
