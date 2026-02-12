@@ -547,6 +547,12 @@ ul {
     flex-grow: 1;
 }
 
+@supports (height: 100dvh) {
+    body {
+        height: 100dvh;
+    }
+}
+
 @media (width <= 800px) {
 
     .container {
