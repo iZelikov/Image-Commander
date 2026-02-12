@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+
 :root {
     --main_bg: #000F0C;
     --terminal_color: #008800;
@@ -5,7 +7,8 @@
     --terminal_bg: #000000;
     --terminal_bg_50: rgba(0, 0, 0, 0.5);
     --terminal_bg_75: rgba(0, 0, 0, 0.75);
-    --terminal_font: courier, monospace;
+    --terminal_font: 'Roboto Mono', 'PT Mono', 'Cascadia Code', 'Fira Code',
+    'Courier New', Courier, 'Liberation Mono';
     --terminal_font_size: 20px;
     --terminal_line_height: 1.2em;
     --terminal_font_weight: bold;
@@ -19,12 +22,15 @@
     --padding_xs: 0.25em;
 }
 
+body, pre, code, kbd, samp {
+    font-family: var(--terminal_font), monospace;
+}
+
 body {
     height: 100vh;
     padding: 0;
     margin: 0;
 }
-
 
 .right {
     text-align: right;
