@@ -491,7 +491,7 @@ ul {
 .modal-window {
     background-color: var(--terminal_bg);
     border: 3px double var(--terminal_color);
-    width: 90%;
+    width: 99%;
     max-width: 800px;
     max-height: 90vh;
     display: flex;
@@ -637,5 +637,17 @@ ul {
         padding: 0 var(--padding_small);
         border-right: none;
         border-left: none;
+    }
+
+    .modal-window {
+        width: 95%;
+    }
+
+    .modal-header, .modal-content {
+        padding:  var(--padding_main) var(--padding_xs);
+    }
+
+    .modal-content pre {
+        white-space: pre-wrap;
     }
 }
