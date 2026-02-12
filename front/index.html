@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Image Commander</title>
-    <link rel="stylesheet" href="static/css/style.css?v=20260212165534">
+    <link rel="stylesheet" href="static/css/style.css?v=20260212181231">
     <link rel="icon" type="image/png" href="static/img/icons/favicon-96x96.png" sizes="96x96"/>
     <link rel="icon" type="image/svg+xml" href="static/img/icons/favicon.svg"/>
     <link rel="shortcut icon" href="static/img/icons/favicon.ico"/>
@@ -105,7 +105,7 @@
                                 </tr>
                                 </tbody>
                             </table>
-                            <p class="empty-message" v-else>Drop your files here...<br> Or click "Select" button</p>
+                            <p class="empty-message" v-else>Drop your files&nbsp;here...<br> Or click "Select"&nbsp;button</p>
                         </div>
                         <div class="viewer" v-show="viewMode">
                             <img v-if="activePanel==='right'" :src="currentView.preview" alt="No Preview Available">
@@ -182,7 +182,7 @@
                 <label for="cl-input" id="cl-label">{{ username }}</label>
                 <input type="text" id="cl-input"
                        v-model="commandInput"
-                       @keydown.enter="executeCommand"
+                       @keyup.enter.prevent="executeCommand"
                        @keydown.up="getHistory(-1)"
                        @keydown.down="getHistory(1)"
                        @focusin="activePanel=null"
@@ -194,7 +194,7 @@
     </div>
 </div>
 
-<script src="https://unpkg.com/vue@3/dist/vue.global.js?v=20260212165534"></script>
-<script src="static/js/main_vue.js?v=20260212165534"></script>
+<script src="https://unpkg.com/vue@3/dist/vue.global.js?v=20260212181231"></script>
+<script src="static/js/main_vue.js?v=20260212181231"></script>
 </body>
 </html>
