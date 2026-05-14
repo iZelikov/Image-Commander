@@ -76,7 +76,7 @@ services:
       POSTGRES_PORT: ${POSTGRES_PORT}
 
       # Расписание: каждый день в 2:00
-      SCHEDULE: "* 2 * * *"
+      SCHEDULE: "0 2 * * *"
 
       # Хранение: 7 дней, 4 недели, 6 месяцев
       BACKUP_KEEP_DAYS: 7
