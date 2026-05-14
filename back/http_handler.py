@@ -7,7 +7,7 @@ from pathlib import Path
 from config import DEBUG, IMAGE_DIR, PREVIEW_DIR
 from db import get_images_metadata, save_metadata, delete_metadata, get_images_count
 from multipart_parser import MultipartParser
-from helpers import validate_image_file, save_uploaded_file
+from helpers import validate_image_file, commit_upload, prepare_upload, rollback_upload
 
 logger = logging.getLogger(__name__)
 
@@ -109,29 +109,30 @@ class ImageRequestHandler(http.server.BaseHTTPRequestHandler):
                         logger.debug(f"Processing file: {filename}, size: {len(file_data)} bytes")
 
                         validation = validate_image_file(file_data, filename)
-
                         if validation['valid']:
                             try:
-                                new_filename = save_uploaded_file(file_data, filename)
+                                temp_orig, temp_preview, final_orig, final_preview = prepare_upload(file_data, filename)
+
                                 save_metadata(
-                                    filename=new_filename,
+                                    filename=final_orig.name,  # сохраняем имя финального файла
                                     original_name=filename,
                                     size=validation['size'],
                                     file_type=validation['file_type']
                                 )
 
+                                commit_upload(temp_orig, temp_preview, final_orig, final_preview)
+
                                 uploaded_files.append({
                                     'original_name': filename,
-                                    'saved_name': new_filename,
+                                    'saved_name': final_orig.name,
                                     'size': validation['size'],
-                                    'url': f'/images/{new_filename}'
+                                    'url': f'/images/{final_orig.name}'
                                 })
-                                logger.info(f"Successfully uploaded file: {filename} -> {new_filename}")
-
                             except Exception as e:
-                                error_msg = f"Error saving {filename}: {str(e)}"
-                                logger.error(error_msg, exc_info=True)
-                                errors.append(error_msg)
+                                # откат, если переменные определены
+                                if 'temp_orig' in locals():
+                                    rollback_upload(temp_orig, temp_preview)
+                                errors.append(f"Error saving {filename}: {str(e)}")
                         else:
                             error_msg = f"File {filename}: {', '.join(validation['errors'])}"
                             logger.warning(error_msg)
