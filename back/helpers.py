@@ -5,7 +5,6 @@ from typing import Dict
 import shutil
 import tempfile
 
-
 from config import FILE_EXTENSIONS, MAX_FILE_SIZE_BYTES, IMAGE_DIR, PREVIEW_DIR, PREVIEW_SIZE, PREVIEW_QUALITY
 from multipart_parser import logger
 from PIL import Image, ImageOps
@@ -78,99 +77,21 @@ def validate_image_file(file_data: bytes, filename: str) -> Dict:
     return result
 
 
-# def save_uploaded_file(file_data: bytes, original_filename: str) -> str:
-#     """Сохранение загруженного файла с уникальным именем"""
-#     # Генерируем уникальное имя файла
-#     timestamp = int(time.time())
-#     unique_id = str(uuid.uuid4())[:8]
+# def convert_to_green_scale(image):
+#     """Делаем пикселявое зелёное изображение (и получается фигня)"""
+#     # Преобразуем в оттенки серого
+#     grayscale = image.convert('L')
 #
-#     # Сохраняем оригинальное расширение, если оно допустимо
-#     ext = original_filename.split('.')[-1].lower() if '.' in original_filename else ''
-#     if ext not in FILE_EXTENSIONS:
-#         # Определяем расширение по сигнатуре
-#         if file_data[:3] == b'\xff\xd8\xff':
-#             ext = 'jpg'
-#         elif len(file_data) >= 8 and file_data[:8] == b'\x89PNG\r\n\x1a\n':
-#             ext = 'png'
-#         elif len(file_data) >= 6 and file_data[:6] in (b'GIF87a', b'GIF89a'):
-#             ext = 'gif'
-#         elif len(file_data) >= 12 and file_data[:4] == b'RIFF' and file_data[8:12] == b'WEBP':
-#             ext = 'webp'
-#         else:
-#             ext = 'jpg'
+#     # Создаем нулевые каналы для красного и синего
+#     zero_channel = Image.new('L', grayscale.size, 0)
 #
-#     new_filename = f"{timestamp}_{unique_id}.{ext}"
-#     filepath = IMAGE_DIR / new_filename
-#
-#     logger.debug(f"Saving file: {original_filename} -> {new_filename} ({len(file_data)} bytes)")
-#
-#     # Сохраняем файл
-#     with open(filepath, 'wb') as f:
-#         f.write(file_data)
-#
-#     logger.info(f"File saved successfully: {new_filename}")
-#
-#     # Создаем превью
-#     create_preview(filepath, new_filename, size=PREVIEW_SIZE, quality=PREVIEW_QUALITY)
-#
-#     return new_filename
-#
-#
-# def create_preview(image_path: Path, filename: str, size=300, quality=60):
-#     """Создание превью изображения"""
-#
-#     try:
-#         # Создаем папку для превью, если её нет
-#         preview_dir = PREVIEW_DIR
-#         preview_dir.mkdir(parents=True, exist_ok=True)
-#
-#         # Открываем изображение
-#         with Image.open(image_path) as img:
-#             # Конвертируем в RGB если нужно (для PNG с прозрачностью)
-#             if img.mode in ('RGBA', 'LA', 'P'):
-#                 # Создаем черный фон для прозрачных изображений
-#                 background = Image.new('RGB', img.size, (0, 0, 0))
-#                 if img.mode == 'P':
-#                     img = img.convert('RGBA')
-#                 background.paste(img, mask=img.split()[-1] if img.mode == 'RGBA' else None)
-#                 img = background
-#             elif img.mode != 'RGB':
-#                 img = img.convert('RGB')
-#
-#             # Создаем превью (максимальный размер 300x300, сохраняя пропорции)
-#             img.thumbnail((size, size))
-#
-#             # Конвертируем в зелёный цвет (для имитации зелёного терминала)
-#             # Кринжовенько....
-#             # img = convert_to_green_scale(img)
-#
-#             # Сохраняем превью с тем же именем (всегда в формате JPEG для экономии места)
-#             preview_filename = Path(filename).stem + '.jpg'
-#             preview_path = preview_dir / preview_filename
-#
-#             # Сохраняем с хорошим качеством
-#             img.save(preview_path, 'JPEG', quality=quality)
-#
-#             logger.info(f"Preview created: {preview_path}")
-#
-#     except Exception as e:
-#         logger.error(f"Failed to create preview for {filename}: {e}", exc_info=True)
+#     # Объединяем каналы: R=0, G=grayscale, B=0
+#     img = Image.merge('RGB', (zero_channel, grayscale, zero_channel))
+#     posterized_img = ImageOps.posterize(img, 3)
+#     # pixelated_img = posterized_img.resize((64, 64), Image.Resampling.BICUBIC)
+#     # posterized_img = pixelated_img.resize(img.size, Image.Resampling.BOX)
+#     return posterized_img
 
-
-def convert_to_green_scale(image):
-    """Делаем пикселявое зелёное изображение (и получается фигня)"""
-    # Преобразуем в оттенки серого
-    grayscale = image.convert('L')
-
-    # Создаем нулевые каналы для красного и синего
-    zero_channel = Image.new('L', grayscale.size, 0)
-
-    # Объединяем каналы: R=0, G=grayscale, B=0
-    img = Image.merge('RGB', (zero_channel, grayscale, zero_channel))
-    posterized_img = ImageOps.posterize(img, 3)
-    # pixelated_img = posterized_img.resize((64, 64), Image.Resampling.BICUBIC)
-    # posterized_img = pixelated_img.resize(img.size, Image.Resampling.BOX)
-    return posterized_img
 
 def prepare_upload(file_data: bytes, original_filename: str):
     """
