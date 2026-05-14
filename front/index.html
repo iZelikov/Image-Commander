@@ -86,6 +86,7 @@
                                     <td>Filename</td>
                                     <td class="no-mobile">Ext</td>
                                     <td class="right no-mobile">Size&nbsp;MB</td>
+                                    <td class="center no-laptops">Created</td>
                                     <td class="center">OK</td>
                                 </tr>
                                 </thead>
@@ -101,6 +102,7 @@
                                     <td>{{ file.shortName }}</td>
                                     <td class="no-mobile">{{ file.ext }}</td>
                                     <td class="right no-mobile">{{ file.sizeMB }}</td>
+                                    <td class="center no-laptops">{{ file.createdAt || '-'}}</td>
                                     <td class="center">{{ file.validation.ok ? '✓' : ''}}</td>
                                 </tr>
                                 </tbody>
@@ -127,7 +129,8 @@
                                 <tr>
                                     <td>Filename</td>
                                     <td class="no-mobile">Ext</td>
-                                    <td class="right no-mobile">Size&nbsp;MB</td>
+                                    <td class="center no-mobile">Size&nbsp;MB</td>
+                                    <td class="center no-laptops">Uploaded</td>
                                     <td class="center">Link</td>
                                 </tr>
                                 </thead>
@@ -141,6 +144,7 @@
                                     <td>{{ file.shortName }}</td>
                                     <td class="no-mobile">{{ file.ext }}</td>
                                     <td class="right no-mobile">{{ file.sizeMB }}</td>
+                                    <td class="right no-laptops">{{ file.uploadedAt || '-'}}</td>
                                     <td class="center"><a target="_blank" :href="file.link">[&blacktriangledown;]</a></td>
                                 </tr>
                                 </tbody>

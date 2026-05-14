@@ -14,7 +14,8 @@
     --terminal_font_weight: bold;
     --terminal_font_size_mobile: 16px;
     --terminal_font_weight_mobile: normal;
-    --desktop_width: 1024px;
+    --desktop_width: 1200px;
+    --laptop_width: 1024px;
     --tablet_width: 800px;
     --mobile_width: 480px;
     --padding_main: 1em;
@@ -556,6 +557,15 @@ ul {
 @supports (height: 100dvh) {
     body {
         height: 100dvh;
+    }
+}
+
+@media (width < 1200px) {
+    .no-laptops {
+        display:none;
+    }
+    .container {
+        max-width: var(--laptop_width);
     }
 }
 

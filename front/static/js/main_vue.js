@@ -451,12 +451,15 @@ createApp({
                 const extension = splitName.pop().toLowerCase();
                 const name = splitName.join('');
                 const shortName = name.length > MAX_NAME_LENGTH ? `${name.slice(0, MAX_NAME_LENGTH - 2)}~1` : name;
+                const fullDate = new Date(file.lastModified);
+                const createdAt = formatDate(fullDate);
                 return {
                     name: name,
                     shortName: shortName,
                     fullName: file.name,
                     ext: extension,
                     sizeMB: (file.size / (1024 * 1024)).toFixed(3),
+                    createdAt: createdAt,
                     validation: validateFile(file),
                     fileObject: file
                 }
@@ -481,6 +484,8 @@ createApp({
                 const shortName = name.length > MAX_NAME_LENGTH ? `${name.slice(0, MAX_NAME_LENGTH - 2)}~1` : name;
                 const link = file['link'];
                 const preview = file['preview'];
+                const fullDate = new Date(file['upload_time']);
+                const uploadedAt = formatDate(fullDate);
                 return {
                     name: name,
                     shortName: shortName,
@@ -490,6 +495,7 @@ createApp({
                     link: link,
                     preview: preview,
                     sizeMB: (file.size / (1024 * 1024)).toFixed(3),
+                    uploadedAt: uploadedAt,
                 }
             })
         },
@@ -825,4 +831,18 @@ function getCookie(name) {
         if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
     }
     return null;
+}
+
+function formatDate(date) {
+    const sep = '/';
+
+    let dd = date.getDate();
+    if (dd < 10) dd = '0' + dd;
+
+    let mm = date.getMonth() + 1;
+    if (mm < 10) mm = '0' + mm;
+
+    let yyyy = date.getFullYear();
+
+    return dd + sep + mm + sep + yyyy;
 }
